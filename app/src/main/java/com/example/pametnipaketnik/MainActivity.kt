@@ -1,6 +1,8 @@
 package com.example.pametnipaketnik
 
+import android.content.Context
 import android.os.Bundle
+import android.view.View
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
@@ -8,10 +10,12 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.example.pametnipaketnik.databinding.ActivityMainBinding
+import com.example.pametnipaketnik.startup.StartupPage
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private lateinit var navView: BottomNavigationView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,14 +23,39 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val navView: BottomNavigationView = binding.navView
+        navView = binding.navView
 
         val navController = findNavController(R.id.nav_host_fragment_activity_main)
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
-        val appBarConfiguration = AppBarConfiguration(setOf(
-                R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications))
+        val appBarConfiguration = AppBarConfiguration(
+            setOf(
+                R.id.navigation_home,
+                R.id.navigation_dashboard,
+                R.id.navigation_notifications
+            )
+        )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
+
+        val prefs = getSharedPreferences("my_prefs", Context.MODE_PRIVATE)
+        val isValueAdded = prefs.getBoolean("is_value_added", false)
+
+        if (!isValueAdded) {
+            // Navigate to the startup page if the value is not added
+            navController.navigate(R.id.navigation_startuppage)
+            // Hide the Bottom Navigation Bar when the startup page is shown
+            navView.visibility = View.GONE
+        } else {
+            // Show the Bottom Navigation Bar when other fragments are shown
+            navView.visibility = View.VISIBLE
+        }
+
+        // Listen for changes to the selected destination in the Navigation component
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            if (destination.id != R.id.navigation_startuppage) {
+                navView.visibility = View.VISIBLE
+            }
+        }
     }
 }
+
+

@@ -22,4 +22,9 @@
         android:name="com.example.pametnipaketnik.ui.notifications.NotificationsFragment"
         android:label="@string/title_notifications"
         tools:layout="@layout/fragment_notifications" />
+    <fragment
+        android:id="@+id/navigation_startuppage"
+        android:name="com.example.pametnipaketnik.startup.StartupPage"
+        android:label="fragment_startup_page"
+        tools:layout="@layout/fragment_startup_page" />
 </navigation>
