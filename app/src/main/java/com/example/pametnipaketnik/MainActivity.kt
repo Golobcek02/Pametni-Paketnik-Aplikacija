@@ -36,9 +36,8 @@ class MainActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
-        val prefs = getSharedPreferences("my_prefs", Context.MODE_PRIVATE)
-        val isValueAdded = prefs.getBoolean("is_value_added", false)
-
+        val prefs = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+        val isValueAdded = prefs.contains("username")
         if (!isValueAdded) {
             // Navigate to the startup page if the value is not added
             navController.navigate(R.id.navigation_startuppage)
