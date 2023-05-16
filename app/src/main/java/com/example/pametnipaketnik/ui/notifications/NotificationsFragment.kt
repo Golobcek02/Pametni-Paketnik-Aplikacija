@@ -16,6 +16,11 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.pametnipaketnik.databinding.FragmentNotificationsBinding
 import com.google.zxing.integration.android.IntentIntegrator
 import com.google.zxing.integration.android.IntentResult
+import com.journeyapps.barcodescanner.CaptureActivity
+
+class PortraitCaptureActivity : CaptureActivity() {
+    // No need to override anything here
+}
 
 class NotificationsFragment : Fragment() {
 
@@ -53,7 +58,7 @@ class NotificationsFragment : Fragment() {
             integrator.setCameraId(0)
             integrator.setBeepEnabled(false)
             integrator.setBarcodeImageEnabled(false)
-
+            integrator.setCaptureActivity(PortraitCaptureActivity::class.java) // Use your custom activity here
 
 
             // Create the scan intent and launch it using ActivityResultLauncher
