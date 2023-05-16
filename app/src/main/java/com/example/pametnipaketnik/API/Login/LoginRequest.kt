@@ -1,4 +1,4 @@
-package com.example.pametnipaketnik.API
+package com.example.pametnipaketnik.API.Login
 
 data class LoginRequest(
     val Username: String,
