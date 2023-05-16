@@ -49,8 +49,8 @@ class LoginPage : Fragment() {
         val navView = requireActivity().findViewById<BottomNavigationView>(R.id.nav_view)
         navView.visibility = View.GONE
         binding = FragmentLoginPageBinding.inflate(inflater, container, false)
-        binding.returnToHome.setOnClickListener {
-            binding.returnToHome.setOnClickListener {
+        binding.buttonLogin.setOnClickListener {
+            binding.buttonLogin.setOnClickListener {
                 if (binding.passwordInput.text == null || binding.usernameInput.text == null) {
                     println("neke ni vreje")
                 } else {
