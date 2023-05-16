@@ -51,22 +51,29 @@ class LoginPage : Fragment() {
         binding = FragmentLoginPageBinding.inflate(inflater, container, false)
         binding.returnToHome.setOnClickListener {
             binding.returnToHome.setOnClickListener {
-                CoroutineScope(Dispatchers.IO).launch {
-                    try {
-                        val request = LoginRequest("b", "a")
-                        val response = loginInterface.login(request)
-                        if (response.Username != null) {
-                            println(response.Username)
-                            withContext(Dispatchers.Main) {
-                                findNavController().navigate(R.id.navigation_home)
-                                navView.visibility = View.VISIBLE
+                if (binding.passwordInput.text == null || binding.usernameInput.text == null) {
+                    println("neke ni vreje")
+                } else {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        try {
+                            val request = LoginRequest(
+                                binding.usernameInput.text.toString(),
+                                binding.passwordInput.text.toString()
+                            )
+                            val response = loginInterface.login(request)
+                            if (response.Username != null) {
+                                println(response.Username)
+                                withContext(Dispatchers.Main) {
+                                    findNavController().navigate(R.id.navigation_home)
+                                    navView.visibility = View.VISIBLE
+                                }
+                            } else {
+                                // Data is null, handle the case where no data is returned
+                                println("No data available")
                             }
-                        } else {
-                            // Data is null, handle the case where no data is returned
-                            println("No data available")
+                        } catch (e: Exception) {
+                            println("error")
                         }
-                    } catch (e: Exception) {
-                        println("error")
                     }
                 }
             }
