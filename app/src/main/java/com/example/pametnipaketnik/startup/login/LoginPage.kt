@@ -70,10 +70,14 @@ class LoginPage : Fragment() {
                         val response = loginInterface.login(request)
                         if (response.Username != null) {
                             println(response.Username)
+                            println(response.ID)
                             val sharedPreferences =
                                 activity?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-                            sharedPreferences?.edit()?.putString("username", response.Username)
-                                ?.apply()
+                            sharedPreferences?.edit()?.apply {
+                                putString("username", response.Username)
+                                putString("user_id", response.ID)
+                                apply()
+                            }
                             withContext(Dispatchers.Main) {
                                 findNavController().navigate(R.id.navigation_home)
                                 navView.visibility = View.VISIBLE
