@@ -71,7 +71,7 @@ class RegisterPage : Fragment() {
                         val response = registerInterface.register(request)
                         if (response.res == "Proceede") {
                             withContext(Dispatchers.Main) {
-                                findNavController().navigate(R.id.navigation_startuppage)
+                                findNavController().navigate(R.id.login_page)
                             }
                         } else {
                             println("No data available")
@@ -79,7 +79,7 @@ class RegisterPage : Fragment() {
                     } catch (e: Exception) {
                         println("error")
                         requireActivity().runOnUiThread {
-                            binding.textviewInputError.setText("You have to enter all listed credentials")
+                            binding.textviewInputError.setText("User already exists")
                             binding.usernameInput.setText("")
                             binding.passwordInput.setText("")
                             binding.nameInput.setText("")
