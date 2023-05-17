@@ -9,8 +9,11 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.pametnipaketnik.API.GetUserBoxes.BoxInterface
 import com.example.pametnipaketnik.databinding.FragmentDashboardBinding
+import com.example.pametnipaketnik.recyclerView.BoxAdapter
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -43,10 +46,6 @@ class DashboardFragment : Fragment() {
         _binding = FragmentDashboardBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val textView: TextView = binding.textDashboard
-        dashboardViewModel.text.observe(viewLifecycleOwner) {
-            textView.text = it
-        }
         return root
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -59,10 +58,13 @@ class DashboardFragment : Fragment() {
                     val response = boxInterface.getUserBoxes(userId)
                     println(response)
                     val boxes = response.allBoxes
-                    // Now you can use boxes as before
-                    boxes.forEach { box ->
-                        println("Box ID: ${box.boxId}, Latitude: ${box.latitude}, Longitude: ${box.longitude}")
-                    }
+
+
+                    // Set up RecyclerView after fetching boxes
+                    val boxRecyclerView: RecyclerView = binding.boxRecyclerView
+                    boxRecyclerView.layoutManager = LinearLayoutManager(context)
+                    boxRecyclerView.adapter = BoxAdapter(boxes)
+
                 } catch (e: Exception) {
                     // Handle error
                     println("Error fetching boxes: $e")
