@@ -1,4 +1,5 @@
 package com.example.pametnipaketnik.API.GetUserBoxes
 
-class GetUserBoxesResponse {
-}
+data class GetUserBoxesResponse(
+    val boxes: List<Box>
+)

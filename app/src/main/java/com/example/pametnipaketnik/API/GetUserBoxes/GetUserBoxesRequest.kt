@@ -1,4 +1,5 @@
 package com.example.pametnipaketnik.API.GetUserBoxes
 
-class GetUserBoxesRequest {
-}
+data class GetUserBoxesRequest(
+    val userId: String
+)
