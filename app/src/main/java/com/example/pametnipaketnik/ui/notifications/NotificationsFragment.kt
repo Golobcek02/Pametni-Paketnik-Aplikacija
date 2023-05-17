@@ -17,10 +17,43 @@ import com.example.pametnipaketnik.databinding.FragmentNotificationsBinding
 import com.google.zxing.integration.android.IntentIntegrator
 import com.google.zxing.integration.android.IntentResult
 import com.journeyapps.barcodescanner.CaptureActivity
+import okhttp3.OkHttpClient
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.Body
+import retrofit2.http.Headers
+import retrofit2.http.POST
+import java.util.concurrent.TimeUnit
 
 class PortraitCaptureActivity : CaptureActivity() {
     // No need to override anything here
 }
+
+data class OpenBoxRequest(
+    val deliveryId: Int,
+    val boxId: Int,
+    val tokenFormat: Int,
+    val latitude: Double,
+    val longitude: Double,
+    val qrCodeInfo: String,
+    val terminalSeed: Int,
+    val isMultibox: Boolean,
+    val doorIndex: Int,
+    val addAccessLog: Boolean
+)
+
+data class OpenBoxResponse(val tokenData: String)
+
+interface Direct4meApi {
+    @Headers("Content-Type: application/json", "Authorization: Bearer 9ea96945-3a37-4638-a5d4-22e89fbc998f")
+    @POST("sandbox/v1/Access/openbox")
+    fun openBox(@Body request: OpenBoxRequest): Call<OpenBoxResponse>
+}
+
+
 
 class NotificationsFragment : Fragment() {
 
@@ -75,10 +108,73 @@ class NotificationsFragment : Fragment() {
                 println("dela")
                 val scannedText: TextView = binding.scannedText
                 scannedText.text = intentResult.contents
+                val qrResult = intentResult.contents
+                val boxId = qrResult.split("/")[2].trimStart('0')
+                println("ID: "+ boxId.toString())
+                openBox(boxId)
             }
         }
 
         return root
+    }
+
+    fun openBox(boxId: String) {
+        println("prva")
+        val okHttpClient = OkHttpClient.Builder()
+            .readTimeout(60, TimeUnit.SECONDS)
+            .connectTimeout(60, TimeUnit.SECONDS)
+            .build()
+
+        val retrofit = Retrofit.Builder()
+            .baseUrl("https://api-d4me-stage.direct4.me/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .client(okHttpClient)
+            .build()
+        println("druga")
+
+        val service = retrofit.create(Direct4meApi::class.java)
+
+        val openBoxRequest = OpenBoxRequest(
+            deliveryId = 0,
+            boxId = boxId.toInt(),
+            tokenFormat = 5,
+            latitude = 0.0,
+            longitude = 0.0,
+            qrCodeInfo = "string",
+            terminalSeed = 0,
+            isMultibox = false,
+            doorIndex = 0,
+            addAccessLog = false
+        )
+        println("tretja")
+
+        val openBoxCall = service.openBox(openBoxRequest)
+        println("cetrta")
+
+        openBoxCall.enqueue(object: Callback<OpenBoxResponse> {
+            override fun onResponse(call: Call<OpenBoxResponse>, response: Response<OpenBoxResponse>) {
+                println("peta")
+                println(response)
+                if (response.isSuccessful) {
+                    println("sesta")
+                    val tokenData = response.body()?.tokenData
+                    println("API KLIC")
+                    val qrText: TextView = binding.tokenText
+                    qrText.text = tokenData
+                    //playToken(tokenData)
+                } else {
+                    println("neuspesen response")
+                    println("Response code: " + response.code())
+                    println("Error body: " + response.errorBody()?.string())
+                }
+            }
+
+            override fun onFailure(call: Call<OpenBoxResponse>, t: Throwable) {
+                // Handle error
+                println("API NAPAKA: " + t.message)
+
+            }
+        })
     }
 
     override fun onDestroyView() {
