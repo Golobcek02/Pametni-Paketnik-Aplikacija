@@ -36,5 +36,13 @@ class StartupPage : Fragment() {
             // Navigate to the login page
             findNavController().navigate(R.id.login_page)
         }
+
+        binding.buttonRegisterPage.setOnClickListener {
+            // Hide the app bar
+            (requireActivity() as AppCompatActivity).supportActionBar?.hide()
+
+            // Navigate to the register page
+            findNavController().navigate(R.id.register_page)
+        }
     }
 }

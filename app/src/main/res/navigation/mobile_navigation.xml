@@ -32,4 +32,9 @@
         android:name="com.example.pametnipaketnik.startup.login.LoginPage"
         android:label="fragment_login_page"
         tools:layout="@layout/fragment_login_page" />
+    <fragment
+        android:id="@+id/register_page"
+        android:name="com.example.pametnipaketnik.startup.register.RegisterPage"
+        android:label="fragment_register_page"
+        tools:layout="@layout/fragment_register_page" />
 </navigation>
