@@ -37,4 +37,9 @@
         android:name="com.example.pametnipaketnik.startup.register.RegisterPage"
         android:label="fragment_register_page"
         tools:layout="@layout/fragment_register_page" />
+    <fragment
+        android:id="@+id/navigation_map_page"
+        android:name="com.example.pametnipaketnik.map.MapPage"
+        android:label="Map"
+        tools:layout="@layout/fragment_map_page" />
 </navigation>
