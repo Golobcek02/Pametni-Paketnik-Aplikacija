@@ -1,6 +1,9 @@
 package com.example.pametnipaketnik.API.Map
 
-class MapResponce(
+data class MapResponse(
+    var allBoxes: List<BoxesStruct>
+)
+data class BoxesStruct(
     var ID: String,
     var BoxId: Int,
     var Latitude: Double,

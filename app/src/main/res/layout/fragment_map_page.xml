@@ -8,7 +8,7 @@
     <org.osmdroid.views.MapView
         android:id="@+id/mapView"
         android:layout_width="413dp"
-        android:layout_height="461dp"
+        android:layout_height="574dp"
         android:clickable="true"
         android:focusable="true" />
 

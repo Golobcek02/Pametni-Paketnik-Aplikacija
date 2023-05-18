@@ -5,5 +5,5 @@ import retrofit2.http.Path
 
 interface MapInterface {
     @GET("getUserBoxes/{id}")
-    suspend fun getUserBoxes(@Path("id") id: Int): MapResponce
+    suspend fun getUserBoxes(@Path("id") id: String): MapResponse
 }

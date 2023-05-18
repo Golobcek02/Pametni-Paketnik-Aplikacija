@@ -1,36 +1,30 @@
 package com.example.pametnipaketnik.map
 
 import android.content.Context
+import android.graphics.Color
+import android.location.Geocoder
 import android.os.Bundle
 import android.preference.PreferenceManager
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.fragment.findNavController
 import com.example.pametnipaketnik.API.Map.MapInterface
-import com.example.pametnipaketnik.API.Register.RegisterInterface
-import com.example.pametnipaketnik.API.Register.RegisterRequest
 import com.example.pametnipaketnik.R
-import com.example.pametnipaketnik.databinding.FragmentHomeBinding
 import com.example.pametnipaketnik.databinding.FragmentMapPageBinding
-import com.example.pametnipaketnik.ui.home.HomeViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.osmdroid.api.IMapController
 import org.osmdroid.config.Configuration
-import org.osmdroid.config.Configuration.getInstance
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.Marker
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.io.File
 import java.lang.Exception
-
 
 class MapPage : Fragment() {
     private var _binding: FragmentMapPageBinding? = null;
@@ -59,36 +53,44 @@ class MapPage : Fragment() {
     ): View? {
         _binding = FragmentMapPageBinding.inflate(inflater, container, false)
 
-        val navView = requireActivity().findViewById<BottomNavigationView>(R.id.nav_view)
-        navView.visibility = View.VISIBLE
-        val sharedPreferences =
-            activity?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-        val id = sharedPreferences?.getString("user_id", "")
+        val navView = requireActivity().findViewById<BottomNavigationView>(R.id.nav_view);
+        navView.visibility = View.VISIBLE;
+        val sharedPreferences = activity?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        val id = sharedPreferences?.getString("user_id", "");
 
-        val osmConf = Configuration.getInstance()
-        osmConf.userAgentValue = requireActivity().packageName
-        osmConf.osmdroidBasePath = requireActivity().getExternalFilesDir(null)
-        osmConf.osmdroidTileCache = File(osmConf.osmdroidBasePath, "tiles")
+        Configuration.getInstance().load(
+            requireContext(),
+            PreferenceManager.getDefaultSharedPreferences(requireContext())
+        );
 
-        Configuration.getInstance().load(requireContext(), PreferenceManager.getDefaultSharedPreferences(requireContext()))
+        map = binding.mapView;
+        map.setTileSource(TileSourceFactory.MAPNIK);
+        map.isHorizontalMapRepetitionEnabled = false;
+        map.isVerticalMapRepetitionEnabled = false;
 
-        map = binding.mapView
-        map.setTileSource(TileSourceFactory.MAPNIK)
-        map.isHorizontalMapRepetitionEnabled = false
-        map.isVerticalMapRepetitionEnabled = false
+        val mapController: IMapController = map.controller;
+        mapController.setZoom(7.0);
+        mapController.setCenter(GeoPoint(46.562511, 15.658693))
+        val geocoder = Geocoder(requireContext());
 
-        val mapController: IMapController = map.controller
-        mapController.setZoom(7.0)
-
-        /*CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = id?.let { mapInterface.getUserBoxes(it.toInt()) }
-                println(response)
+                val response = mapInterface.getUserBoxes(id.toString())
+                val boxes = response.allBoxes
+
+                for (x in boxes) {
+                    val mark = Marker(map);
+                    mark.position = GeoPoint(x.Latitude, x.Longitude);
+                    mark.title = x.BoxId.toString();
+                    mark.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+                    map.overlays.add(mark);
+                }
+
             } catch (e: Exception) {
                 println("error")
                 println(e)
             }
-        }*/
+        }
 
         return binding.root
     }
