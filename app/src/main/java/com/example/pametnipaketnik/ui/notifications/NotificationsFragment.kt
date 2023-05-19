@@ -104,9 +104,8 @@ class NotificationsFragment : Fragment() {
                     println("dela")
                     val qrArray = intentResult.contents.split("/")
                     val scannedText: TextView = binding.scannedText
-                    scannedText.text = intentResult.contents
+                    //scannedText.text = intentResult.contents
                     CoroutineScope(Dispatchers.IO).launch {
-                        println("v callu");
                         try {
                             val requestBody = OpenBoxRequest(
                                 deliveryId = 0,
@@ -123,18 +122,21 @@ class NotificationsFragment : Fragment() {
                             val response = openBoxInterface.openBox(requestBody);
 
                             if (response.result == 0) {
-                                println("v responsu");
                                 val decodedBytes = Base64.decode(response.data, Base64.DEFAULT);
                                 val tempFile = File.createTempFile("temp", ".mp3")
                                 FileOutputStream(tempFile).use { fos ->
                                     fos.write(decodedBytes)
                                 };
+
                                 val mediaPlayer = MediaPlayer().apply {
                                     setDataSource(tempFile.absolutePath)
                                     prepare()
                                     start()
                                 }
-                                mediaPlayer.release();
+
+                                mediaPlayer.setOnCompletionListener {
+                                    mediaPlayer.release();
+                                }
                                 tempFile.delete();
                             }
                         } catch (e: Exception) {
