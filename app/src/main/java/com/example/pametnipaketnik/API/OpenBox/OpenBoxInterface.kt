@@ -1,6 +1,6 @@
 package com.example.pametnipaketnik.API.OpenBox
 
-import retrofit2.Call
+import com.example.pametnipaketnik.ui.notifications.OpenBoxRequest
 import retrofit2.http.Body
 import retrofit2.http.Headers
 import retrofit2.http.POST

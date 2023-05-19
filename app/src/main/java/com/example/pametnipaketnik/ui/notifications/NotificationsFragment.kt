@@ -1,8 +1,6 @@
 package com.example.pametnipaketnik.ui.notifications
 
-import android.app.Activity
 import android.content.Intent
-import android.content.pm.ActivityInfo
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.util.Base64
@@ -15,26 +13,23 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.example.pametnipaketnik.API.OpenBox.OpenBoxInterface
 import com.example.pametnipaketnik.databinding.FragmentNotificationsBinding
 import com.google.gson.annotations.SerializedName
 import com.google.zxing.integration.android.IntentIntegrator
 import com.google.zxing.integration.android.IntentResult
 import com.journeyapps.barcodescanner.CaptureActivity
-import okhttp3.OkHttpClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.Headers
 import retrofit2.http.POST
 import java.io.File
-import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.io.IOException
-import java.util.concurrent.TimeUnit
-import java.util.zip.ZipInputStream
 
 class PortraitCaptureActivity : CaptureActivity() {
     // No need to override anything here
@@ -75,6 +70,20 @@ class NotificationsFragment : Fragment() {
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
+    private lateinit var openBoxInterface: OpenBoxInterface
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        arguments?.let {
+        }
+
+        val retrofit = Retrofit.Builder()
+            .baseUrl("https://api-d4me-stage.direct4.me/")
+//            .client(OkHttpClient.Builder().connectTimeout(5, TimeUnit.SECONDS).build())
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+        openBoxInterface = retrofit.create(OpenBoxInterface::class.java)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -119,130 +128,51 @@ class NotificationsFragment : Fragment() {
             } else {
                 println("dela")
                 val scannedText: TextView = binding.scannedText
-                scannedText.text = intentResult.contents
+
                 val qrResult = intentResult.contents
-                val boxId = qrResult.split("/")[2].trimStart('0')
-                println("ID: "+ boxId.toString())
-                openBox(boxId)
-            }
-        }
+                val boxId = qrResult.split("/")[2].toInt();
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        val requestBody = OpenBoxRequest(
+                            deliveryId = 0,
+                            boxId = boxId,
+                            tokenFormat = 5,
+                            latitude = 0.0,
+                            longitude = 0.0,
+                            qrCodeInfo = "string",
+                            terminalSeed = 0,
+                            isMultibox = false,
+                            doorIndex = 0,
+                            addAccessLog = false
+                        );
+                        val response = openBoxInterface.openBox(requestBody);
 
-        return root
-    }
+                        if (response.result == 0) {
+                            val decodedBytes = Base64.decode(response.data, Base64.DEFAULT);
+                            val tempFile = File.createTempFile("temp", ".mp3")
+                            FileOutputStream(tempFile).use { fos ->
+                                fos.write(decodedBytes)
+                            };
 
-    fun openBox(boxId: String) {
-        println("prva")
-        val okHttpClient = OkHttpClient.Builder()
-            .readTimeout(60, TimeUnit.SECONDS)
-            .connectTimeout(60, TimeUnit.SECONDS)
-            .build()
-
-        val retrofit = Retrofit.Builder()
-            .baseUrl("https://api-d4me-stage.direct4.me/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .client(okHttpClient)
-            .build()
-        println("druga")
-
-        val service = retrofit.create(Direct4meApi::class.java)
-
-        val openBoxRequest = OpenBoxRequest(
-            deliveryId = 0,
-            boxId = 538,
-            tokenFormat = 2,
-            latitude = 0.0,
-            longitude = 0.0,
-            qrCodeInfo = "string",
-            terminalSeed = 0,
-            isMultibox = false,
-            doorIndex = 0,
-            addAccessLog = false
-        )
-        println("tretja")
-
-        val openBoxCall = service.openBox(openBoxRequest)
-        println("cetrta")
-
-
-
-        openBoxCall.enqueue(object: Callback<OpenBoxResponse> {
-            override fun onResponse(call: Call<OpenBoxResponse>, response: Response<OpenBoxResponse>) {
-                if (response.isSuccessful) {
-                    val tokenData = response.body()?.tokenData
-                    if (tokenData != null) {
-                        println("Token data: $tokenData")
-                        val encodedString = tokenData
-                        val decodedBytes = Base64.decode(encodedString, Base64.DEFAULT)
-                        var file : File?=null
-                        try {
-                            file = File(context?.cacheDir, "audio.mp3")
-                            val fos = FileOutputStream(file)
-                            fos.write(decodedBytes)
-                            fos.close()
-                        } catch (e: IOException) {
-                            e.printStackTrace()
-                        }
-
-                        val mediaPlayer = MediaPlayer()
-                        try {
-                            if (file != null) {
-                                mediaPlayer.setDataSource(file.path)
-
-                            }
-                            mediaPlayer.prepare()
-                            mediaPlayer.start()
-                        } catch (e: IOException) {
-                            e.printStackTrace()
-                        }
-
-                        /*val byteArray = Base64.decode(tokenData, Base64.DEFAULT)
-                        val filePath = context?.filesDir?.absolutePath + "/token.mp3"
-                        try {
-                            val fos = FileOutputStream(filePath)
-                            fos.write(byteArray)
-                            fos.close()
-                            println("filesize: "+ filePath)
-                            mediaPlayer = MediaPlayer().apply {
-                                setDataSource(filePath)
+                            val mediaPlayer = MediaPlayer().apply {
+                                setDataSource(tempFile.absolutePath)
                                 prepare()
                                 start()
                             }
 
-
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }*/
-
-                    } else {
-                        println("tokenData is null")
-                    }
-                } else {
-                    println("neuspesen response")
-                    println("Response code: " + response.code())
-                    println("Error body: " + response.errorBody()?.string())
-                }
-            }
-
-            private fun showPlayButton(filePath: String) {
-                binding.playButton.visibility = View.VISIBLE
-                binding.playButton.setOnClickListener {
-                    mediaPlayer = MediaPlayer()
-                    try {
-                        mediaPlayer!!.setDataSource(filePath)
-                        //mediaPlayer!!.prepare()
-                        mediaPlayer!!.start()
-                    } catch (e: IOException) {
-                        e.printStackTrace()
+                            mediaPlayer.setOnCompletionListener {
+                                mediaPlayer.release();
+                            }
+                            tempFile.delete();
+                        }
+                    } catch (e: Exception) {
+                        println(e)
                     }
                 }
             }
+        }
 
-            override fun onFailure(call: Call<OpenBoxResponse>, t: Throwable) {
-                // Handle error
-                println("API NAPAKA: " + t.message)
-
-            }
-        })
+        return root
     }
 
     override fun onDestroyView() {
