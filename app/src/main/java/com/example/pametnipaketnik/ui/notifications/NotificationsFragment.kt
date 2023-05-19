@@ -3,7 +3,9 @@ package com.example.pametnipaketnik.ui.notifications
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.media.MediaPlayer
 import android.os.Bundle
+import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,8 +22,14 @@ import com.example.pametnipaketnik.databinding.FragmentNotificationsBinding
 import com.google.zxing.integration.android.IntentIntegrator
 import com.google.zxing.integration.android.IntentResult
 import com.journeyapps.barcodescanner.CaptureActivity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.io.File
+import java.io.FileOutputStream
+import java.lang.Exception
 
 class PortraitCaptureActivity : CaptureActivity() {
     // No need to override anything here
@@ -85,32 +93,58 @@ class NotificationsFragment : Fragment() {
             resultLauncher.launch(scanIntent)
         }
         // Initialize the ActivityResultLauncher
-        resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            val intentResult: IntentResult = IntentIntegrator.parseActivityResult(result.resultCode, result.data)
-            if (intentResult.contents == null) {
-                println("neDela")
-                // Handle cancelled scanning
-            } else {
-                println("dela")
-                val qrArray = intentResult.contents.split("/")
-                val requestBody = OpenBoxRequest(
-                    deliveryId = 0,
-                    boxId = qrArray[2].toInt(),
-                    tokenFormat = 5,
-                    latitude = 0.0,
-                    longitude = 0.0,
-                    qrCodeInfo = "string",
-                    terminalSeed = 0,
-                    isMultibox = false,
-                    doorIndex = 0,
-                    addAccessLog = false
-                )
-                val scannedText: TextView = binding.scannedText
-                scannedText.text = intentResult.contents
-                val response = openBoxInterface.openBox(requestBody)
+        resultLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                val intentResult: IntentResult =
+                    IntentIntegrator.parseActivityResult(result.resultCode, result.data)
+                if (intentResult.contents == null) {
+                    println("neDela")
+                    // Handle cancelled scanning
+                } else {
+                    println("dela")
+                    val qrArray = intentResult.contents.split("/")
+                    val scannedText: TextView = binding.scannedText
+                    scannedText.text = intentResult.contents
+                    CoroutineScope(Dispatchers.IO).launch {
+                        println("v callu");
+                        try {
+                            val requestBody = OpenBoxRequest(
+                                deliveryId = 0,
+                                boxId = qrArray[2].toInt(),
+                                tokenFormat = 5,
+                                latitude = 0.0,
+                                longitude = 0.0,
+                                qrCodeInfo = "string",
+                                terminalSeed = 0,
+                                isMultibox = false,
+                                doorIndex = 0,
+                                addAccessLog = false
+                            );
+                            val response = openBoxInterface.openBox(requestBody);
 
+                            if (response.result == 0) {
+                                println("v responsu");
+                                val decodedBytes = Base64.decode(response.data, Base64.DEFAULT);
+                                val tempFile = File.createTempFile("temp", ".mp3")
+                                FileOutputStream(tempFile).use { fos ->
+                                    fos.write(decodedBytes)
+                                };
+                                val mediaPlayer = MediaPlayer().apply {
+                                    setDataSource(tempFile.absolutePath)
+                                    prepare()
+                                    start()
+                                }
+                                mediaPlayer.release();
+                                tempFile.delete();
+                            }
+                        } catch (e: Exception) {
+                            println(e)
+                        }
+                    }
+
+
+                }
             }
-        }
 
         return root
     }
