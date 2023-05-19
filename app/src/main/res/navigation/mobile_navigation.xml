@@ -37,4 +37,8 @@
         android:name="com.example.pametnipaketnik.startup.register.RegisterPage"
         android:label="fragment_register_page"
         tools:layout="@layout/fragment_register_page" />
+    <fragment
+        android:id="@+id/login_2FA"
+        android:name="Login2FA"
+        android:label="fragment_login2_f_a" />
 </navigation>
