@@ -46,4 +46,8 @@
         android:name="com.example.pametnipaketnik.startup.registerCreateFaceId.CreateFaceID"
         android:label="fragment_create_face_i_d"
         tools:layout="@layout/fragment_create_face_i_d" />
+        android:id="@+id/navigation_map_page"
+        android:name="com.example.pametnipaketnik.map.MapPage"
+        android:label="Map"
+        tools:layout="@layout/fragment_map_page" />
 </navigation>
