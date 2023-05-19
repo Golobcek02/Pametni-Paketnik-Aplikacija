@@ -127,10 +127,9 @@ class NotificationsFragment : Fragment() {
                 // Handle cancelled scanning
             } else {
                 println("dela")
-                val scannedText: TextView = binding.scannedText
-
-                val qrResult = intentResult.contents
+                val qrResult = intentResult.contents;
                 val boxId = qrResult.split("/")[2].toInt();
+                binding.scannedText.text = "Scanned box id" +boxId.toString();
                 CoroutineScope(Dispatchers.IO).launch {
                     try {
                         val requestBody = OpenBoxRequest(
@@ -155,9 +154,9 @@ class NotificationsFragment : Fragment() {
                             };
 
                             val mediaPlayer = MediaPlayer().apply {
-                                setDataSource(tempFile.absolutePath)
-                                prepare()
-                                start()
+                                setDataSource(tempFile.absolutePath);
+                                prepare();
+                                start();
                             }
 
                             mediaPlayer.setOnCompletionListener {
@@ -166,7 +165,7 @@ class NotificationsFragment : Fragment() {
                             tempFile.delete();
                         }
                     } catch (e: Exception) {
-                        println(e)
+                        println(e);
                     }
                 }
             }
