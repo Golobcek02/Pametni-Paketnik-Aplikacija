@@ -41,4 +41,9 @@
         android:id="@+id/login_2FA"
         android:name="Login2FA"
         android:label="fragment_login2_f_a" />
+    <fragment
+        android:id="@+id/register_createFaceID"
+        android:name="com.example.pametnipaketnik.startup.registerCreateFaceId.CreateFaceID"
+        android:label="fragment_create_face_i_d"
+        tools:layout="@layout/fragment_create_face_i_d" />
 </navigation>

@@ -71,13 +71,13 @@ class RegisterPage : Fragment() {
                         val response = registerInterface.register(request)
                         if (response.res == "Proceede") {
                             withContext(Dispatchers.Main) {
-                                findNavController().navigate(R.id.login_page)
+                                findNavController().navigate(R.id.register_createFaceID)
                             }
                         } else {
                             println("No data available")
                         }
                     } catch (e: Exception) {
-                        println("error")
+                        println(e)
                         requireActivity().runOnUiThread {
                             binding.textviewInputError.setText("User already exists")
                             binding.usernameInput.setText("")

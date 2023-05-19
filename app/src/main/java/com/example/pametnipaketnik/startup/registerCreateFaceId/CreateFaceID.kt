@@ -1,41 +1,50 @@
+package com.example.pametnipaketnik.startup.registerCreateFaceId
+
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
-import androidx.camera.core.*
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
+import com.example.pametnipaketnik.API.CreateFaceID.CreateFaceIDInterface
 import com.example.pametnipaketnik.R
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.*
-import java.util.concurrent.ExecutorService
-import androidx.camera.view.PreviewView
-import androidx.navigation.fragment.findNavController
-import com.example.pametnipaketnik.API.Login2FA.Login2FAInterface
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
+import okhttp3.RequestBody.Companion.asRequestBody
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.Timer
+import java.util.TimerTask
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-class Login2FA : Fragment() {
+class CreateFaceID : Fragment() {
+
 
     private val CAMERA_PERMISSION_REQUEST_CODE = 100
-    private val MAX_CAPTURE_COUNT = 3
-    private val CAPTURE_DELAY = 1000L
+    private val MAX_CAPTURE_COUNT = 80
+    private val CAPTURE_DELAY = 500L
 
     private lateinit var cameraExecutor: ExecutorService
     private var currentCaptureCount = 0
@@ -55,7 +64,7 @@ class Login2FA : Fragment() {
         val navView = requireActivity().findViewById<BottomNavigationView>(R.id.nav_view)
         navView.visibility = View.GONE
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_login2_f_a, container, false)
+        return inflater.inflate(R.layout.fragment_create_face_i_d, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -126,6 +135,7 @@ class Login2FA : Fragment() {
                     if (currentCaptureCount < MAX_CAPTURE_COUNT) {
                         captureImage()
                         currentCaptureCount++
+                        println(currentCaptureCount)
                     } else {
                         closeCamera()
                         timer.cancel()
@@ -140,6 +150,7 @@ class Login2FA : Fragment() {
     private fun captureImage() {
         // Delete all files in the output directory
         val outputDirectory = getOutputDirectory()
+        println(outputDirectory)
         outputDirectory?.let { directory ->
             directory.listFiles()?.forEach { file ->
                 file.delete()
@@ -197,7 +208,7 @@ class Login2FA : Fragment() {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
-        val apiService = retrofit.create(Login2FAInterface::class.java)
+        val apiService = retrofit.create(CreateFaceIDInterface::class.java)
 
         val imageParts = images.mapIndexed { index, file ->
             val requestBody = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
@@ -206,6 +217,7 @@ class Login2FA : Fragment() {
 
         try {
             val success = apiService.uploadImages(imageParts)
+            println(success)
             if (success) {
                 // Images uploaded successfully
                 println("zaj dela upam")
