@@ -13,10 +13,15 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.example.pametnipaketnik.API.Login.LoginInterface
+import com.example.pametnipaketnik.API.OpenBox.OpenBoxInterface
+import com.example.pametnipaketnik.API.OpenBox.OpenBoxRequest
 import com.example.pametnipaketnik.databinding.FragmentNotificationsBinding
 import com.google.zxing.integration.android.IntentIntegrator
 import com.google.zxing.integration.android.IntentResult
 import com.journeyapps.barcodescanner.CaptureActivity
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 class PortraitCaptureActivity : CaptureActivity() {
     // No need to override anything here
@@ -30,6 +35,20 @@ class NotificationsFragment : Fragment() {
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
+    private lateinit var openBoxInterface: OpenBoxInterface
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        arguments?.let {
+        }
+
+        val retrofit = Retrofit.Builder()
+            .baseUrl("https://api-d4me-stage.direct4.me/")
+//            .client(OkHttpClient.Builder().connectTimeout(5, TimeUnit.SECONDS).build())
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+        openBoxInterface = retrofit.create(OpenBoxInterface::class.java)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -73,8 +92,23 @@ class NotificationsFragment : Fragment() {
                 // Handle cancelled scanning
             } else {
                 println("dela")
+                val qrArray = intentResult.contents.split("/")
+                val requestBody = OpenBoxRequest(
+                    deliveryId = 0,
+                    boxId = qrArray[2].toInt(),
+                    tokenFormat = 5,
+                    latitude = 0.0,
+                    longitude = 0.0,
+                    qrCodeInfo = "string",
+                    terminalSeed = 0,
+                    isMultibox = false,
+                    doorIndex = 0,
+                    addAccessLog = false
+                )
                 val scannedText: TextView = binding.scannedText
                 scannedText.text = intentResult.contents
+                val response = openBoxInterface.openBox(requestBody)
+
             }
         }
 
