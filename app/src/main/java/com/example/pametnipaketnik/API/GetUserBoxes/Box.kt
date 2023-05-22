@@ -15,5 +15,7 @@ data class Box(
     @SerializedName("OwnerId")
     val ownerId: String,
     @SerializedName("AccessIds")
-    val accessIds: List<String>
+    val accessIds: List<String>,
+    @SerializedName("TimeAccessed")
+    val timeaccessed: Int
 )
