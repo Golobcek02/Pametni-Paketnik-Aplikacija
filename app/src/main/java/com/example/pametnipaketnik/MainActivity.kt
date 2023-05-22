@@ -48,7 +48,7 @@ class MainActivity : AppCompatActivity() {
             // Show the Bottom Navigation Bar when other fragments are shown
 //            navView.visibility = View.VISIBLE
             navView.visibility = View.GONE
-            navController.navigate(R.id.login_2FA)
+            navController.navigate(R.id.register_page)
         }
 
         // Listen for changes to the selected destination in the Navigation component
