@@ -11,4 +11,7 @@
     <color name="centerColor">#330033</color>
     <color name="endColor">#FF000000</color>
     <color name="grayish_background">#C0C0C0</color>
+    <color name="colorOne">#FFBB86FC</color>
+    <color name="colorTwo">#330033</color>
+    <color name="colorThree">#FF018786</color>
 </resources>
