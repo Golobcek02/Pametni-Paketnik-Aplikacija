@@ -1,7 +1,9 @@
 package com.example.pametnipaketnik.API.GetUserBoxes
 
 import com.google.gson.annotations.SerializedName
+import com.mongodb.Bytes
 import org.bson.types.ObjectId
+import java.nio.ByteBuffer
 
 data class Box(
     @SerializedName("ID")
@@ -17,5 +19,5 @@ data class Box(
     @SerializedName("AccessIds")
     val accessIds: List<String>,
     @SerializedName("TimeAccessed")
-    val timeaccessed: Int
+    val timeaccessed: Long
 )
