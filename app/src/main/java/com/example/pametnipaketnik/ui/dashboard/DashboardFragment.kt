@@ -59,6 +59,9 @@ class DashboardFragment : Fragment() {
                     println(response)
                     val boxes = response.allBoxes
 
+                    boxes.forEach({
+                        println(it.timeaccessed)
+                    })
 
                     // Set up RecyclerView after fetching boxes
                     val boxRecyclerView: RecyclerView = binding.boxRecyclerView
