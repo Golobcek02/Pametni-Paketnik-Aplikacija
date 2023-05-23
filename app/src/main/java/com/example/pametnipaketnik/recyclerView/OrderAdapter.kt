@@ -3,6 +3,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.pametnipaketnik.API.GetUserOrders.Order
 import com.example.pametnipaketnik.R
@@ -22,8 +24,8 @@ class OrderAdapter(private val orders: List<Order>) : RecyclerView.Adapter<Order
 
     override fun onBindViewHolder(holder: OrderViewHolder, position: Int) {
         val order = orders[position]
-        holder.boxIdTextView.text ="Box ID:  ${order.boxId.toString()}"
-        holder.statusTextView.text ="Status:  ${order.status}"
+        holder.boxIdTextView.text = "Box ID:  ${order.boxId.toString()}"
+        holder.statusTextView.text = "Status:  ${order.status}"
 
         // Change the border color based on order status
         when (order.status) {
@@ -34,23 +36,31 @@ class OrderAdapter(private val orders: List<Order>) : RecyclerView.Adapter<Order
         }
 
         // Add the items to the LinearLayout
-        holder.itemsLinearLayout.removeAllViews() // Clear any old views
-        order.items?.forEach { item ->
-            val itemTextView = TextView(holder.itemView.context)
-            itemTextView.text = item
+        holder.itemsLinearLayout.removeAllViews()
 
-            // Set a top margin for spacing between items
-            val layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
+        val itemCountTextView = TextView(holder.itemView.context)
+        val itemCount = order.items?.size ?: 0
+        itemCountTextView.text = "$itemCount"
+        itemCountTextView.setTextColor(
+            ContextCompat.getColor(
+                holder.itemView.context,
+                R.color.black
             )
-            layoutParams.setMargins(0, 8, 0, 0) // Top margin is 8dp
-            itemTextView.layoutParams = layoutParams
+        )
 
-            holder.itemsLinearLayout.addView(itemTextView)
-        }
+        val customTypeface = ResourcesCompat.getFont(holder.itemView.context, R.font.castor)
+        itemCountTextView.typeface = customTypeface
+
+        // Set a top margin for spacing between count and other views
+        val layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        layoutParams.setMargins(0, 16, 0, 0) // Top margin is 16dp
+        itemCountTextView.layoutParams = layoutParams
+
+        holder.itemsLinearLayout.addView(itemCountTextView)
     }
-
 
     override fun getItemCount() = orders.size
 }

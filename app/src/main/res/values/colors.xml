@@ -8,7 +8,9 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="startColor">#ff9a6922</color>
-    <color name="centerColor">#330033</color>
+
+    <color name="centerColor">#DDD6C4</color>
+    <color name="outerColor">#84B59F</color>
     <color name="endColor">#FF000000</color>
     <color name="grayish_background">#C0C0C0</color>
     <color name="colorOne">#FFBB86FC</color>
