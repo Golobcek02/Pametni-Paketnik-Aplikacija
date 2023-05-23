@@ -53,30 +53,36 @@ class DashboardFragment : Fragment() {
 
         val userId = activity?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)?.getString("user_id", "")
         if (userId != null) {
+            println("ne dela")
             lifecycleScope.launch {
                 try {
+                    println("proba")
                     val response = boxInterface.getUserBoxes(userId)
+                    println("proba1")
                     println(response)
-                    val boxes = response.allBoxes
-
-                    boxes.forEach({
-                        println(it.timeaccessed)
-                    })
-
-                    // Set up RecyclerView after fetching boxes
-                    val boxRecyclerView: RecyclerView = binding.boxRecyclerView
-                    boxRecyclerView.layoutManager = LinearLayoutManager(context)
-                    boxRecyclerView.adapter = BoxAdapter(boxes)
+                    if (response.isSuccessful) { // Check if the HTTP request was successful
+                        val boxes = response.body() // Extract the list of boxes from the response
+                        if (boxes != null) {
+                            println("proba2")
+                            // Set up RecyclerView after fetching boxes
+                            val boxRecyclerView: RecyclerView = binding.boxRecyclerView
+                            boxRecyclerView.layoutManager = LinearLayoutManager(context)
+                            boxRecyclerView.adapter = BoxAdapter(boxes)
+                        } else {
+                            println("Body of the response is null")
+                        }
+                    } else {
+                        println("Unsuccessful response: ${response.code()}")
+                    }
 
                 } catch (e: Exception) {
                     // Handle error
                     println("Error fetching boxes: $e")
                 }
             }
-
-
         }
     }
+
 
     override fun onDestroyView() {
         super.onDestroyView()

@@ -35,8 +35,10 @@ class BoxAdapter(private val boxes: List<Box>) : RecyclerView.Adapter<BoxAdapter
     override fun onBindViewHolder(holder: BoxViewHolder, position: Int) {
         val box = boxes[position]
         holder.boxId.text = "Box ID: ${box.boxId}"
-        val instant = Instant.ofEpochSecond(box.timeaccessed.toLong())
-        val localDateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
-        holder.timeAccessed.text = "Access Time: ${localDateTime}"
+
+        // Convert Unix timestamp to human-readable date
+        val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault())
+        val date = Date(box.TimeAccessed)
+        holder.timeAccessed.text = "Access Time: ${sdf.format(date)}"
     }
 }

@@ -8,16 +8,28 @@ import java.nio.ByteBuffer
 data class Box(
     @SerializedName("ID")
     val id: String,
+
+    @SerializedName("DeliveryId")
+    val DeliveryId: Int,
+
     @SerializedName("BoxId")
     val boxId: Int,
+
     @SerializedName("Latitude")
-    val latitude: Float,
+    val Latitude: Double,
+
     @SerializedName("Longitude")
-    val longitude: Float,
-    @SerializedName("OwnerId")
-    val ownerId: String,
-    @SerializedName("AccessIds")
-    val accessIds: List<String>,
+    val Longitude: Double,
+
     @SerializedName("TimeAccessed")
-    val timeaccessed: Long
+    val TimeAccessed: Long,
+
+    @SerializedName("LoggerId")
+    val LoggerId: String,
+
+    @SerializedName("EntryType")
+    val EntryType: String
+
+
 )
+
