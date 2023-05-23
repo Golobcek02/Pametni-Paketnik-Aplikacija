@@ -24,6 +24,15 @@ class OrderAdapter(private val orders: List<Order>) : RecyclerView.Adapter<Order
         val order = orders[position]
         holder.boxIdTextView.text ="Box ID:  ${order.boxId.toString()}"
         holder.statusTextView.text ="Status:  ${order.status}"
+
+        // Change the border color based on order status
+        when (order.status) {
+            "Pending" -> holder.itemView.setBackgroundResource(R.drawable.border_pending)
+            "In Route" -> holder.itemView.setBackgroundResource(R.drawable.border_in_route)
+            "Completed" -> holder.itemView.setBackgroundResource(R.drawable.border_completed)
+            else -> holder.itemView.setBackgroundResource(R.drawable.border) // default black border
+        }
+
         // Add the items to the LinearLayout
         holder.itemsLinearLayout.removeAllViews() // Clear any old views
         order.items?.forEach { item ->
@@ -41,6 +50,7 @@ class OrderAdapter(private val orders: List<Order>) : RecyclerView.Adapter<Order
             holder.itemsLinearLayout.addView(itemTextView)
         }
     }
+
 
     override fun getItemCount() = orders.size
 }
