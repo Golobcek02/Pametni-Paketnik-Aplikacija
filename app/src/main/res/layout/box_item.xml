@@ -29,8 +29,8 @@
             android:id="@+id/text_box_id"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:fontFamily="@font/castor"
+            android:textSize="14sp"
+            android:fontFamily="@font/exo"
             android:textColor="@color/black"/>
 
         <TextView
@@ -38,7 +38,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="14sp"
-            android:fontFamily="@font/castor"
+            android:fontFamily="@font/exo"
             android:textColor="@color/black"/>
 
     </LinearLayout>

@@ -11,7 +11,7 @@
         android:id="@+id/image_view"
         android:layout_width="43dp"
         android:layout_height="43dp"
-        android:src="@drawable/dash"
+        android:src="@drawable/baseline_shopping_basket_24"
         android:layout_gravity="center_vertical" />
 
     <LinearLayout
@@ -26,7 +26,7 @@
             android:layout_height="wrap_content"
             android:text="Box ID: "
             android:textColor="@color/black"
-            android:fontFamily="@font/castor"
+            android:fontFamily="@font/exo"
             android:textSize="14sp"
             android:layout_gravity="center_vertical" />
 
@@ -35,7 +35,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Status: "
-            android:fontFamily="@font/castor"
+            android:fontFamily="@font/exo"
             android:textColor="@color/black"
             android:textSize="14sp"
             android:layout_gravity="center_vertical" />
@@ -46,8 +46,8 @@
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1"
-        android:orientation="vertical"
         android:layout_marginStart="30dp"
+        android:orientation="vertical"
         android:layout_marginEnd="0dp">
 
         <TextView
@@ -55,7 +55,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Order Items:"
-            android:fontFamily="@font/castor"
+            android:fontFamily="@font/exo"
             android:textColor="@color/black"
             android:textSize="14sp"
             android:layout_gravity="start" />

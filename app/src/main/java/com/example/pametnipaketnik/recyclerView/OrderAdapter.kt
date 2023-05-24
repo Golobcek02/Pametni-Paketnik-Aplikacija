@@ -1,6 +1,8 @@
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
@@ -15,6 +17,7 @@ class OrderAdapter(private val orders: List<Order>) : RecyclerView.Adapter<Order
         val boxIdTextView: TextView = view.findViewById(R.id.boxId_text_view)
         val statusTextView: TextView = view.findViewById(R.id.status_text_view)
         val itemsLinearLayout: LinearLayout = view.findViewById(R.id.items_linear_layout)
+        val iconImageView: ImageView = view.findViewById(R.id.image_view)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OrderViewHolder {
@@ -22,19 +25,32 @@ class OrderAdapter(private val orders: List<Order>) : RecyclerView.Adapter<Order
         return OrderViewHolder(view)
     }
 
+    @SuppressLint("ResourceType", "SetTextI18n")
     override fun onBindViewHolder(holder: OrderViewHolder, position: Int) {
         val order = orders[position]
-        holder.boxIdTextView.text = "Box ID:  ${order.boxId.toString()}"
+        holder.boxIdTextView.text = "Box ID:  ${order.boxId.toString()}             "
         holder.statusTextView.text = "Status:  ${order.status}"
 
-        // Change the border color based on order status
+        // Change the icon color based on order status
         when (order.status) {
-            "Pending" -> holder.itemView.setBackgroundResource(R.drawable.border_pending)
-            "In Route" -> holder.itemView.setBackgroundResource(R.drawable.border_in_route)
-            "Completed" -> holder.itemView.setBackgroundResource(R.drawable.border_completed)
-            else -> holder.itemView.setBackgroundResource(R.drawable.border) // default black border
+            "Pending" -> {
+                val pendingIconColor = ContextCompat.getColor(holder.itemView.context, R.color.pendingIconColor)
+                holder.iconImageView.setColorFilter(pendingIconColor)
+            }
+            "In Route" -> {
+                val inRouteIconColor = ContextCompat.getColor(holder.itemView.context, R.color.inRouteIconColor)
+                holder.iconImageView.setColorFilter(inRouteIconColor)
+            }
+            "Completed" -> {
+                val completedIconColor = ContextCompat.getColor(holder.itemView.context, R.color.completedIconColor)
+                holder.iconImageView.setColorFilter(completedIconColor)
+            }
+            else -> {
+                val defaultIconColor = ContextCompat.getColor(holder.itemView.context, R.color.defaultIconColor)
+                holder.iconImageView.setColorFilter(defaultIconColor)
+            }
         }
-
+        println("proba2")
         // Add the items to the LinearLayout
         holder.itemsLinearLayout.removeAllViews()
 
@@ -48,7 +64,7 @@ class OrderAdapter(private val orders: List<Order>) : RecyclerView.Adapter<Order
             )
         )
 
-        val customTypeface = ResourcesCompat.getFont(holder.itemView.context, R.font.castor)
+        val customTypeface = ResourcesCompat.getFont(holder.itemView.context, R.font.exo)
         itemCountTextView.typeface = customTypeface
 
         // Set a top margin for spacing between count and other views

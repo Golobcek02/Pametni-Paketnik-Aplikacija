@@ -9,11 +9,20 @@
     <color name="white">#FFFFFFFF</color>
     <color name="startColor">#ff9a6922</color>
 
-    <color name="centerColor">#DDD6C4</color>
-    <color name="outerColor">#84B59F</color>
+    <color name="centerColor">#AABBCC</color>
+    <color name="outerColor">#50808E</color>
     <color name="endColor">#FF000000</color>
     <color name="grayish_background">#C0C0C0</color>
     <color name="colorOne">#FFBB86FC</color>
     <color name="colorTwo">#330033</color>
     <color name="colorThree">#FF018786</color>
+    <color name="dashIcon">#69A297</color>
+
+
+    <color name="pendingIconColor">#C40D0D</color>
+    <color name="inRouteIconColor">#528AF1</color>
+    <color name="completedIconColor">#58CE8D</color>
+    <color name="defaultIconColor">#000000</color>
+
+
 </resources>
