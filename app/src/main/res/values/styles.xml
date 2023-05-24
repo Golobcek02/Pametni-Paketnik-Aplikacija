@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppButtonStyle" parent="Widget.AppCompat.Button">
+        <item name="android:background">@drawable/baseline_qr_code_2_24</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+</resources>

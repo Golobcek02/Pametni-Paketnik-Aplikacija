@@ -11,9 +11,11 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.pametnipaketnik.API.OpenBox.OpenBoxInterface
+import com.example.pametnipaketnik.R
 import com.example.pametnipaketnik.databinding.FragmentNotificationsBinding
 import com.google.gson.annotations.SerializedName
 import com.google.zxing.integration.android.IntentIntegrator
@@ -97,10 +99,11 @@ class NotificationsFragment : Fragment() {
         _binding = FragmentNotificationsBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val textView: TextView = binding.textNotifications
+        /*val textView: TextView = binding.textNotifications
         notificationsViewModel.text.observe(viewLifecycleOwner) {
             textView.text = it
-        }
+        }*/
+
 
         // Add QR code scanning button
         val scanButton: Button = binding.scanButton
