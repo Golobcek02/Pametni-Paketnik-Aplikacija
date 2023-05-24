@@ -18,10 +18,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.osmdroid.api.IMapController
 import org.osmdroid.config.Configuration
+import org.osmdroid.events.DelayedMapListener
+import org.osmdroid.events.MapListener
+import org.osmdroid.events.ScrollEvent
+import org.osmdroid.events.ZoomEvent
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
+import org.osmdroid.views.overlay.Polygon
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.lang.Exception
@@ -45,6 +50,7 @@ class MapPage : Fragment() {
             .build()
         mapInterface = retrofit.create(MapInterface::class.java)
     }
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -79,13 +85,52 @@ class MapPage : Fragment() {
                 val boxes = response.allBoxes
 
                 for (x in boxes) {
-                    val mark = Marker(map);
-                    mark.position = GeoPoint(x.Latitude, x.Longitude);
-                    mark.title = x.BoxId.toString();
-                    mark.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-                    map.overlays.add(mark);
-                }
+                    val circle = Polygon(map)
+                    val points = Polygon.pointsAsCircle(GeoPoint(x.Latitude, x.Longitude), 5.0);
+                    circle.points = points;
+                    circle.fillColor = 0x30111111;
+                    circle.strokeColor = 0xFF111111.toInt();
+                    circle.strokeWidth = 2.0f;
+                    circle.title = x.BoxId.toString();
+                    map.overlays.add(circle);
+                    map.minZoomLevel = 2.0
+                    map.maxZoomLevel = 20.0
 
+                    map.addMapListener(object : MapListener {
+                        override fun onScroll(event: ScrollEvent?): Boolean {
+                            val zoomLevel = map.zoomLevelDouble
+                            val metersPerPixel =
+                                (156543.03392 * Math.cos(x.Latitude * Math.PI / 180) / Math.pow(
+                                    2.0,
+                                    zoomLevel
+                                )) // Calculate the meters per pixel based on the zoom level and latitude
+                            val newRadius =
+                                (metersPerPixel * (40.0+map.zoomLevelDouble))-(20-map.zoomLevelDouble)
+                            val updatedPoints =
+                                Polygon.pointsAsCircle(GeoPoint(x.Latitude, x.Longitude), newRadius)
+                            circle.points = updatedPoints
+                            map.invalidate()
+                            return true
+                        }
+
+                        override fun onZoom(event: ZoomEvent?): Boolean {
+                            val zoomLevel = map.zoomLevelDouble
+                            val metersPerPixel =
+                                (156543.03392 * Math.cos(x.Latitude * Math.PI / 180) / Math.pow(
+                                    2.0,
+                                    zoomLevel
+                                )) // Calculate the meters per pixel based on the zoom level and latitude
+                            val newRadius =
+                                (metersPerPixel * (40.0+map.zoomLevelDouble))-(20-map.zoomLevelDouble)
+                            val updatedPoints =
+                                Polygon.pointsAsCircle(GeoPoint(x.Latitude, x.Longitude), newRadius)
+                            circle.points = updatedPoints
+                            map.invalidate()
+                            return true
+                        }
+                    })
+
+                }
             } catch (e: Exception) {
                 println("error")
                 println(e)
