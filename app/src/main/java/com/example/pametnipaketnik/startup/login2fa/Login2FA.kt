@@ -206,6 +206,7 @@ class Login2FA : Fragment() {
 
         try {
             val success = apiService.uploadImages(imageParts)
+//            println(success)
             if (success) {
                 // Images uploaded successfully
                 println("zaj dela upam")
