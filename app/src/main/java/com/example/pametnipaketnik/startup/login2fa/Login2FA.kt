@@ -1,4 +1,5 @@
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -43,13 +44,11 @@ class Login2FA : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.let {
-        }
+        arguments?.let {}
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
         (requireActivity() as AppCompatActivity).supportActionBar?.hide()
         val navView = requireActivity().findViewById<BottomNavigationView>(R.id.nav_view)
@@ -66,8 +65,7 @@ class Login2FA : Fragment() {
     private fun openCamera() {
         // Check if the camera permission is granted
         if (ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.CAMERA
+                requireContext(), Manifest.permission.CAMERA
             ) == PackageManager.PERMISSION_GRANTED
         ) {
             // Camera permission is already granted
@@ -83,8 +81,7 @@ class Login2FA : Fragment() {
 
 
                 // Set up the image capture use case to take pictures
-                imageCapture = ImageCapture.Builder()
-                    .build()
+                imageCapture = ImageCapture.Builder().build()
 
                 // Select the back camera as the default camera
                 val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
@@ -95,10 +92,7 @@ class Login2FA : Fragment() {
 
                     // Bind the camera use cases to the lifecycle of this fragment
                     cameraProvider.bindToLifecycle(
-                        this,
-                        cameraSelector,
-                        preview,
-                        imageCapture
+                        this, cameraSelector, preview, imageCapture
                     )
                     cameraExecutor = Executors.newSingleThreadExecutor()
                     // Schedule the capture of images
@@ -131,9 +125,7 @@ class Login2FA : Fragment() {
                         timer.cancel()
                     }
                 }
-            },
-            CAPTURE_DELAY,
-            CAPTURE_DELAY
+            }, CAPTURE_DELAY, CAPTURE_DELAY
         )
     }
 
@@ -158,8 +150,7 @@ class Login2FA : Fragment() {
             val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
 
             // Capture the image
-            imageCapture.takePicture(
-                outputOptions,
+            imageCapture.takePicture(outputOptions,
                 ContextCompat.getMainExecutor(requireContext()),
                 object : ImageCapture.OnImageSavedCallback {
                     override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
@@ -180,8 +171,7 @@ class Login2FA : Fragment() {
                         // Handle any errors that occur during image capture
                         exception.printStackTrace()
                     }
-                }
-            )
+                })
 
             // Delay between capturing consecutive images
             Thread.sleep(CAPTURE_DELAY)
@@ -191,11 +181,9 @@ class Login2FA : Fragment() {
     private suspend fun sendImagesToApi(images: List<File>) {
         val okHttpClient = OkHttpClient.Builder().build()
 
-        val retrofit = Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:5551/")
+        val retrofit = Retrofit.Builder().baseUrl("http://10.0.2.2:5551/")
 //            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
+            .addConverterFactory(GsonConverterFactory.create()).build()
 
         val apiService = retrofit.create(Login2FAInterface::class.java)
 
@@ -205,7 +193,9 @@ class Login2FA : Fragment() {
         }
 
         try {
-            val success = apiService.uploadImages(imageParts)
+            val userId = activity?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                ?.getString("user_id", "")
+            val success = apiService.uploadImages(userId.toString(), imageParts)
 //            println(success)
             if (success) {
                 // Images uploaded successfully
@@ -231,8 +221,7 @@ class Login2FA : Fragment() {
         val mediaDir = requireContext().externalMediaDirs.firstOrNull()?.let {
             File(it, resources.getString(R.string.app_name)).apply { mkdirs() }
         }
-        return if (mediaDir != null && mediaDir.exists())
-            mediaDir else requireContext().filesDir
+        return if (mediaDir != null && mediaDir.exists()) mediaDir else requireContext().filesDir
     }
 
     private fun closeCamera() {
@@ -241,9 +230,7 @@ class Login2FA : Fragment() {
     }
 
     override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
+        requestCode: Int, permissions: Array<String>, grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
