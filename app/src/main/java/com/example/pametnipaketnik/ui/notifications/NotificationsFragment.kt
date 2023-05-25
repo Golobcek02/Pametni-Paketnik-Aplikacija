@@ -99,11 +99,6 @@ class NotificationsFragment : Fragment() {
         _binding = FragmentNotificationsBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        /*val textView: TextView = binding.textNotifications
-        notificationsViewModel.text.observe(viewLifecycleOwner) {
-            textView.text = it
-        }*/
-
 
         // Add QR code scanning button
         val scanButton: Button = binding.scanButton
@@ -132,7 +127,7 @@ class NotificationsFragment : Fragment() {
                 println("dela")
                 val qrResult = intentResult.contents;
                 val boxId = qrResult.split("/")[2].toInt();
-                binding.scannedText.text = "Scanned box id" +boxId.toString();
+                //binding.scannedText.text = "Scanned box id" +boxId.toString();
                 CoroutineScope(Dispatchers.IO).launch {
                     try {
                         val requestBody = OpenBoxRequest(
