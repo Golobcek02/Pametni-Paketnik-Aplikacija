@@ -1,5 +1,6 @@
 package com.example.pametnipaketnik.API.Register
 
-data class RegisterResponse (
-    var res: String
-        )
+data class RegisterResponse(
+    var res: String,
+    var ID: String,
+)

@@ -1,6 +1,7 @@
 package com.example.pametnipaketnik.startup.registerCreateFaceId
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -216,7 +217,9 @@ class CreateFaceID : Fragment() {
         }
 
         try {
-            val success = apiService.uploadImages(imageParts)
+            val userId = activity?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                ?.getString("user_id", "")
+            val success = apiService.uploadImages(userId.toString(), imageParts)
             println(success)
             if (success) {
                 // Images uploaded successfully

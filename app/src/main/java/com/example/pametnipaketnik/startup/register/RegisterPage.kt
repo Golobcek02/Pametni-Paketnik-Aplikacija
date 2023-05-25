@@ -72,6 +72,15 @@ class RegisterPage : Fragment() {
                         )
                         val response = registerInterface.register(request)
                         if (response.res == "Proceede") {
+//                            println(response.Username)
+                            println(response.ID)
+                            val sharedPreferences =
+                                activity?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                            sharedPreferences?.edit()?.apply {
+                                putString("username", binding.usernameInput.toString())
+                                putString("user_id", response.ID)
+                                apply()
+                            }
                             withContext(Dispatchers.Main) {
                                 findNavController().navigate(R.id.register_createFaceID)
                             }
