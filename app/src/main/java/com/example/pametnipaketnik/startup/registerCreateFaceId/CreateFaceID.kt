@@ -53,13 +53,11 @@ class CreateFaceID : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.let {
-        }
+        arguments?.let {}
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
         (requireActivity() as AppCompatActivity).supportActionBar?.hide()
         val navView = requireActivity().findViewById<BottomNavigationView>(R.id.nav_view)
@@ -76,8 +74,7 @@ class CreateFaceID : Fragment() {
     private fun openCamera() {
         // Check if the camera permission is granted
         if (ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.CAMERA
+                requireContext(), Manifest.permission.CAMERA
             ) == PackageManager.PERMISSION_GRANTED
         ) {
             // Camera permission is already granted
@@ -93,8 +90,7 @@ class CreateFaceID : Fragment() {
 
 
                 // Set up the image capture use case to take pictures
-                imageCapture = ImageCapture.Builder()
-                    .build()
+                imageCapture = ImageCapture.Builder().build()
 
                 // Select the back camera as the default camera
                 val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
@@ -105,10 +101,7 @@ class CreateFaceID : Fragment() {
 
                     // Bind the camera use cases to the lifecycle of this fragment
                     cameraProvider.bindToLifecycle(
-                        this,
-                        cameraSelector,
-                        preview,
-                        imageCapture
+                        this, cameraSelector, preview, imageCapture
                     )
                     cameraExecutor = Executors.newSingleThreadExecutor()
                     // Schedule the capture of images
@@ -142,9 +135,7 @@ class CreateFaceID : Fragment() {
                         timer.cancel()
                     }
                 }
-            },
-            CAPTURE_DELAY,
-            CAPTURE_DELAY
+            }, CAPTURE_DELAY, CAPTURE_DELAY
         )
     }
 
@@ -170,8 +161,7 @@ class CreateFaceID : Fragment() {
             val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
 
             // Capture the image
-            imageCapture.takePicture(
-                outputOptions,
+            imageCapture.takePicture(outputOptions,
                 ContextCompat.getMainExecutor(requireContext()),
                 object : ImageCapture.OnImageSavedCallback {
                     override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
@@ -180,6 +170,7 @@ class CreateFaceID : Fragment() {
                         // Check if it's the last image capture
                         if (currentCaptureCount == MAX_CAPTURE_COUNT - 1) {
                             // Send the captured images to the API
+                            closeCamera()
                             CoroutineScope(Dispatchers.IO).launch {
                                 sendImagesToApi(images)
                             }
@@ -192,8 +183,7 @@ class CreateFaceID : Fragment() {
                         // Handle any errors that occur during image capture
                         exception.printStackTrace()
                     }
-                }
-            )
+                })
 
             // Delay between capturing consecutive images
             Thread.sleep(CAPTURE_DELAY)
@@ -201,13 +191,9 @@ class CreateFaceID : Fragment() {
     }
 
     private suspend fun sendImagesToApi(images: List<File>) {
-        val okHttpClient = OkHttpClient.Builder().build()
 
-        val retrofit = Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:5551/")
-//            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
+        val retrofit = Retrofit.Builder().baseUrl("http://10.0.2.2:5551/")
+            .addConverterFactory(GsonConverterFactory.create()).build()
 
         val apiService = retrofit.create(CreateFaceIDInterface::class.java)
 
@@ -217,6 +203,7 @@ class CreateFaceID : Fragment() {
         }
 
         try {
+            closeCamera()
             val userId = activity?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
                 ?.getString("user_id", "")
             val success = apiService.uploadImages(userId.toString(), imageParts)
@@ -245,8 +232,7 @@ class CreateFaceID : Fragment() {
         val mediaDir = requireContext().externalMediaDirs.firstOrNull()?.let {
             File(it, resources.getString(R.string.app_name)).apply { mkdirs() }
         }
-        return if (mediaDir != null && mediaDir.exists())
-            mediaDir else requireContext().filesDir
+        return if (mediaDir != null && mediaDir.exists()) mediaDir else requireContext().filesDir
     }
 
     private fun closeCamera() {
@@ -255,9 +241,7 @@ class CreateFaceID : Fragment() {
     }
 
     override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
+        requestCode: Int, permissions: Array<String>, grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
