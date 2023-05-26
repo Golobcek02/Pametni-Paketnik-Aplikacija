@@ -159,6 +159,7 @@ class Login2FA : Fragment() {
                         // Check if it's the last image capture
                         if (currentCaptureCount == MAX_CAPTURE_COUNT - 1) {
                             // Send the captured images to the API
+                            closeCamera()
                             CoroutineScope(Dispatchers.IO).launch {
                                 sendImagesToApi(images)
                             }
@@ -196,7 +197,6 @@ class Login2FA : Fragment() {
             val userId = activity?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
                 ?.getString("user_id", "")
             val success = apiService.uploadImages(userId.toString(), imageParts)
-//            println(success)
             if (success) {
                 // Images uploaded successfully
                 println("zaj dela upam")
