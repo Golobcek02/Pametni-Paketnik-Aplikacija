@@ -1,5 +1,6 @@
 package com.example.pametnipaketnik.ui.notifications
 
+import android.content.Context
 import android.content.Intent
 import android.media.MediaPlayer
 import android.os.Bundle
@@ -8,15 +9,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.TextView
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.example.pametnipaketnik.API.AuthenticateUser.AuthenticateUserInterface
+import com.example.pametnipaketnik.API.AuthenticateUser.AuthenticateUserRequest
 import com.example.pametnipaketnik.API.OpenBox.OpenBoxInterface
-import com.example.pametnipaketnik.R
 import com.example.pametnipaketnik.databinding.FragmentNotificationsBinding
+import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
 import com.google.zxing.integration.android.IntentIntegrator
 import com.google.zxing.integration.android.IntentResult
@@ -56,11 +57,13 @@ data class OpenBoxResponse(
 
 
 interface Direct4meApi {
-    @Headers("Content-Type: application/json", "Authorization: Bearer 9ea96945-3a37-4638-a5d4-22e89fbc998f")
+    @Headers(
+        "Content-Type: application/json",
+        "Authorization: Bearer 9ea96945-3a37-4638-a5d4-22e89fbc998f"
+    )
     @POST("sandbox/v1/Access/openbox")
     fun openBox(@Body request: OpenBoxRequest): Call<OpenBoxResponse>
 }
-
 
 
 class NotificationsFragment : Fragment() {
@@ -73,18 +76,27 @@ class NotificationsFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
     private lateinit var openBoxInterface: OpenBoxInterface
+    private lateinit var authenticateUserInterface: AuthenticateUserInterface
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
         }
 
-        val retrofit = Retrofit.Builder()
+        val gson = GsonBuilder().setLenient().create()
+
+        var retrofit = Retrofit.Builder()
             .baseUrl("https://api-d4me-stage.direct4.me/")
-//            .client(OkHttpClient.Builder().connectTimeout(5, TimeUnit.SECONDS).build())
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
         openBoxInterface = retrofit.create(OpenBoxInterface::class.java)
+
+        retrofit = Retrofit.Builder()
+            .baseUrl("http://10.0.2.2:5551/")
+            .addConverterFactory(GsonConverterFactory.create(gson))
+            .build()
+        authenticateUserInterface = retrofit.create(AuthenticateUserInterface::class.java)
+
     }
 
     override fun onCreateView(
@@ -118,56 +130,77 @@ class NotificationsFragment : Fragment() {
             resultLauncher.launch(scanIntent)
         }
         // Initialize the ActivityResultLauncher
-        resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            val intentResult: IntentResult = IntentIntegrator.parseActivityResult(result.resultCode, result.data)
-            if (intentResult.contents == null) {
-                println("neDela")
-                // Handle cancelled scanning
-            } else {
-                println("dela")
-                val qrResult = intentResult.contents;
-                val boxId = qrResult.split("/")[2].toInt();
-                //binding.scannedText.text = "Scanned box id" +boxId.toString();
-                CoroutineScope(Dispatchers.IO).launch {
-                    try {
-                        val requestBody = OpenBoxRequest(
-                            deliveryId = 0,
-                            boxId = boxId,
-                            tokenFormat = 5,
-                            latitude = 0.0,
-                            longitude = 0.0,
-                            qrCodeInfo = "string",
-                            terminalSeed = 0,
-                            isMultibox = false,
-                            doorIndex = 0,
-                            addAccessLog = false
-                        );
-                        val response = openBoxInterface.openBox(requestBody);
+        resultLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                val intentResult: IntentResult =
+                    IntentIntegrator.parseActivityResult(result.resultCode, result.data)
+                if (intentResult.contents == null) {
+                    println("neDela")
+                    // Handle cancelled scanning
+                } else {
+                    println("dela")
+                    val qrResult = intentResult.contents;
+                    val boxId = qrResult.split("/")[2].toInt();
+                    //binding.scannedText.text = "Scanned box id" +boxId.toString();
+                    CoroutineScope(Dispatchers.IO).launch {
+                        try {
+                            val prefs =
+                                activity?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)!!
+                            val user_id = prefs.getString("user_id", "0000000000000")
 
-                        if (response.result == 0) {
-                            val decodedBytes = Base64.decode(response.data, Base64.DEFAULT);
-                            val tempFile = File.createTempFile("temp", ".mp3")
-                            FileOutputStream(tempFile).use { fos ->
-                                fos.write(decodedBytes)
-                            };
+                            val req = AuthenticateUserRequest(
+                                UserID = user_id.toString(),
+                                BoxID = boxId
+                            )
+                            println("auth no")
+                            val res = authenticateUserInterface.authenticateUser(req)
+                            println("auth yes")
+                            println(res)
 
-                            val mediaPlayer = MediaPlayer().apply {
-                                setDataSource(tempFile.absolutePath);
-                                prepare();
-                                start();
+
+                            if (res) {
+
+                                val requestBody = OpenBoxRequest(
+                                    deliveryId = 0,
+                                    boxId = boxId,
+                                    tokenFormat = 5,
+                                    latitude = 0.0,
+                                    longitude = 0.0,
+                                    qrCodeInfo = "string",
+                                    terminalSeed = 0,
+                                    isMultibox = false,
+                                    doorIndex = 0,
+                                    addAccessLog = false
+                                );
+                                val response = openBoxInterface.openBox(requestBody);
+
+                                if (response.result == 0) {
+                                    val decodedBytes = Base64.decode(response.data, Base64.DEFAULT);
+                                    val tempFile = File.createTempFile("temp", ".mp3")
+                                    FileOutputStream(tempFile).use { fos ->
+                                        fos.write(decodedBytes)
+                                    };
+
+                                    val mediaPlayer = MediaPlayer().apply {
+                                        setDataSource(tempFile.absolutePath);
+                                        prepare();
+                                        start();
+                                    }
+
+                                    mediaPlayer.setOnCompletionListener {
+                                        mediaPlayer.release();
+                                    }
+                                    tempFile.delete();
+                                }
+                            } else {
+                                println("you are not authenticated")
                             }
-
-                            mediaPlayer.setOnCompletionListener {
-                                mediaPlayer.release();
-                            }
-                            tempFile.delete();
+                        } catch (e: Exception) {
+                            println(e);
                         }
-                    } catch (e: Exception) {
-                        println(e);
                     }
                 }
             }
-        }
 
         return root
     }
