@@ -6,5 +6,5 @@ import retrofit2.http.POST
 
 interface AuthenticateUserInterface {
     @POST("authenticateUser")
-    suspend fun authenticateUser(@Body request: AuthenticateUserRequest): AuthenticateUserResponse
+    suspend fun authenticateUser(@Body request: AuthenticateUserRequest): Boolean
 }

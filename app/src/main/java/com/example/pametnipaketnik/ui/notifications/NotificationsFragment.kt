@@ -17,6 +17,7 @@ import com.example.pametnipaketnik.API.AuthenticateUser.AuthenticateUserInterfac
 import com.example.pametnipaketnik.API.AuthenticateUser.AuthenticateUserRequest
 import com.example.pametnipaketnik.API.OpenBox.OpenBoxInterface
 import com.example.pametnipaketnik.databinding.FragmentNotificationsBinding
+import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
 import com.google.zxing.integration.android.IntentIntegrator
 import com.google.zxing.integration.android.IntentResult
@@ -82,19 +83,20 @@ class NotificationsFragment : Fragment() {
         arguments?.let {
         }
 
-        val retrofit = Retrofit.Builder()
+        val gson = GsonBuilder().setLenient().create()
+
+        var retrofit = Retrofit.Builder()
             .baseUrl("https://api-d4me-stage.direct4.me/")
-//            .client(OkHttpClient.Builder().connectTimeout(5, TimeUnit.SECONDS).build())
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
         openBoxInterface = retrofit.create(OpenBoxInterface::class.java)
 
-        val retrofit2 = Retrofit.Builder()
+        retrofit = Retrofit.Builder()
             .baseUrl("http://10.0.2.2:5551/")
-//            .client(OkHttpClient.Builder().connectTimeout(5, TimeUnit.SECONDS).build())
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
-        authenticateUserInterface = retrofit2.create(AuthenticateUserInterface::class.java)
+        authenticateUserInterface = retrofit.create(AuthenticateUserInterface::class.java)
+
     }
 
     override fun onCreateView(
@@ -149,13 +151,14 @@ class NotificationsFragment : Fragment() {
                             val req = AuthenticateUserRequest(
                                 UserID = user_id.toString(),
                                 BoxID = boxId
-                            );
+                            )
                             println("auth no")
-                            val res = authenticateUserInterface.authenticateUser(req);
-                            println(res.result);
+                            val res = authenticateUserInterface.authenticateUser(req)
                             println("auth yes")
+                            println(res)
 
-                            if (res.result == "Proceed") {
+
+                            if (res) {
 
                                 val requestBody = OpenBoxRequest(
                                     deliveryId = 0,
