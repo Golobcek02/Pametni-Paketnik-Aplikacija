@@ -1,6 +1,8 @@
 package com.example.pametnipaketnik.startup.registerCreateFaceId
 
 import android.Manifest
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -8,6 +10,9 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.LinearInterpolator
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
@@ -23,6 +28,7 @@ import com.example.pametnipaketnik.R
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -51,6 +57,7 @@ class CreateFaceID : Fragment() {
     private lateinit var cameraExecutor: ExecutorService
     private var currentCaptureCount = 0
     private lateinit var imageCapture: ImageCapture
+    private lateinit var animator: ObjectAnimator
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,6 +82,13 @@ class CreateFaceID : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val myImageView: ImageView = view.findViewById(R.id.myImageView)
+        animator = ObjectAnimator.ofFloat(myImageView, View.ROTATION, 0f, 360f).apply {
+            duration = 2000L // Rotate completely around over 2 seconds.
+            interpolator = LinearInterpolator()
+            repeatCount = ValueAnimator.INFINITE // Repeat indefinitely.
+        }
+        phaseText("PLEASE WAIT\n WHILE WE SCAN YOUR FACE", 20L)
         openCamera()
     }
 
@@ -278,6 +292,29 @@ class CreateFaceID : Fragment() {
                 // Handle the case where the user denies the camera permission
             }
         }
+    }
+
+    private fun phaseText(text: String, delay: Long) {
+        val textView = view?.findViewById<TextView>(R.id.wait_text)
+        CoroutineScope(Dispatchers.Main).launch {
+            while (true) {
+                for (i in 1..text.length) {
+                    delay(delay)
+                    textView?.text = text.substring(0, i)
+                }
+                delay(800)  // Pause for a while before repeating.
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        animator.start()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        animator.cancel()
     }
 
     override fun onDestroyView() {
