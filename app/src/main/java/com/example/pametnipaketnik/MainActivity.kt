@@ -6,11 +6,14 @@ import android.view.View
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.example.pametnipaketnik.databinding.ActivityMainBinding
 import com.example.pametnipaketnik.startup.StartupPage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
 
@@ -47,8 +50,14 @@ class MainActivity : AppCompatActivity() {
         } else {
             // Show the Bottom Navigation Bar when other fragments are shown
 //            navView.visibility = View.VISIBLE
-            navView.visibility = View.GONE
-            navController.navigate(R.id.login_2FA)
+            val faceId = prefs.getBoolean("face_id", false)
+            if (!faceId) {
+                navController.navigate(R.id.register_createFaceID)
+            } else {
+
+                navView.visibility = View.GONE
+                navController.navigate(R.id.login_2FA)
+            }
         }
 
         // Listen for changes to the selected destination in the Navigation component

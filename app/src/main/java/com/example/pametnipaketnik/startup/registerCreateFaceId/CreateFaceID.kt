@@ -209,6 +209,12 @@ class CreateFaceID : Fragment() {
             val success = apiService.uploadImages(userId.toString(), imageParts)
             println(success)
             if (success) {
+                val sharedPreferences =
+                    activity?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                sharedPreferences?.edit()?.apply {
+                    putBoolean("face_id", true)
+                    apply()
+                }
                 // Images uploaded successfully
                 println("zaj dela upam")
                 val navView = requireActivity().findViewById<BottomNavigationView>(R.id.nav_view)
@@ -217,6 +223,12 @@ class CreateFaceID : Fragment() {
                     navView.visibility = View.VISIBLE
                 }
             } else {
+                val sharedPreferences =
+                    activity?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                sharedPreferences?.edit()?.apply {
+                    putBoolean("face_id", false)
+                    apply()
+                }
                 withContext(Dispatchers.Main) {
                     findNavController().navigate(R.id.login_page)
                 }
