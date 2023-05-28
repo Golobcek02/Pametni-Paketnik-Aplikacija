@@ -77,7 +77,7 @@ class RegisterPage : Fragment() {
                             val sharedPreferences =
                                 activity?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
                             sharedPreferences?.edit()?.apply {
-                                putString("username", binding.usernameInput.toString())
+                                putString("username", binding.usernameInput.text.toString())
                                 putString("user_id", response.ID)
                                 apply()
                             }
