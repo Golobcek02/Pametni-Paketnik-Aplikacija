@@ -59,6 +59,12 @@ class CreateFaceID : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
+//        val sharedPreferences =
+//            activity?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+//        sharedPreferences?.edit()?.apply {
+//            putBoolean("face_id", true)
+//            apply()
+//        }
         (requireActivity() as AppCompatActivity).supportActionBar?.hide()
         val navView = requireActivity().findViewById<BottomNavigationView>(R.id.nav_view)
         navView.visibility = View.GONE
