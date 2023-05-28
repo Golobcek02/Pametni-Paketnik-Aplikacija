@@ -39,6 +39,7 @@ import java.util.Timer
 import java.util.TimerTask
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class CreateFaceID : Fragment() {
 
@@ -198,7 +199,13 @@ class CreateFaceID : Fragment() {
 
     private suspend fun sendImagesToApi(images: List<File>) {
 
-        val retrofit = Retrofit.Builder().baseUrl("http://10.0.2.2:5551/")
+        val httpClient = OkHttpClient.Builder()
+            .connectTimeout(60, TimeUnit.SECONDS) //do serverja
+            .readTimeout(100, TimeUnit.SECONDS) //čaka na response
+            .writeTimeout(100, TimeUnit.SECONDS) //čaka na response
+            .build()
+
+        val retrofit = Retrofit.Builder().baseUrl("http://10.0.2.2:5551/").client(httpClient)
             .addConverterFactory(GsonConverterFactory.create()).build()
 
         val apiService = retrofit.create(CreateFaceIDInterface::class.java)
@@ -240,7 +247,7 @@ class CreateFaceID : Fragment() {
                 }
             }
         } catch (e: Exception) {
-            // Handle the failure
+            println(e)
         }
     }
 

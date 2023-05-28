@@ -37,6 +37,7 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class Login2FA : Fragment() {
 
@@ -195,9 +196,13 @@ class Login2FA : Fragment() {
     }
 
     private suspend fun sendImagesToApi(images: List<File>) {
-        val okHttpClient = OkHttpClient.Builder().build()
+        val httpClient = OkHttpClient.Builder()
+            .connectTimeout(60, TimeUnit.SECONDS) //do serverja
+            .readTimeout(100, TimeUnit.SECONDS) //čaka na response
+            .writeTimeout(100, TimeUnit.SECONDS) //čaka na response
+            .build()
 
-        val retrofit = Retrofit.Builder().baseUrl("http://10.0.2.2:5551/")
+        val retrofit = Retrofit.Builder().baseUrl("http://10.0.2.2:5551/").client(httpClient)
 //            .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create()).build()
 
@@ -226,7 +231,7 @@ class Login2FA : Fragment() {
                 }
             }
         } catch (e: Exception) {
-            // Handle the failure
+            println(e)
         }
     }
 
@@ -271,6 +276,7 @@ class Login2FA : Fragment() {
             }
         }
     }
+
     override fun onResume() {
         super.onResume()
         animator.start()
