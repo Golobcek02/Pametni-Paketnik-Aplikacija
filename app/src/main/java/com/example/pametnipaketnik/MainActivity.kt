@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.example.pametnipaketnik.databinding.ActivityMainBinding
@@ -34,7 +35,8 @@ class MainActivity : AppCompatActivity() {
                 R.id.navigation_home,
                 R.id.navigation_dashboard,
                 R.id.navigation_notifications,
-                R.id.navigation_map_page
+                R.id.navigation_map_page,
+                R.id.navigation_startuppage
             )
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
@@ -66,6 +68,28 @@ class MainActivity : AppCompatActivity() {
                 navView.visibility = View.VISIBLE
             }
         }
+
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            if (destination.id == R.id.navigation_startuppage) {
+                navView.visibility = View.GONE
+            }
+        }
+
+        navView.setOnItemSelectedListener { item ->
+            if (item.itemId == R.id.navigation_startuppage) {
+                val sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+                val editor = sharedPreferences.edit()
+                editor.clear()
+                editor.apply()
+                editor.commit()
+                navController.navigate(R.id.navigation_startuppage)
+            } else {
+                NavigationUI.onNavDestinationSelected(item, navController)
+            }
+            true
+        }
+
+
     }
 }
 

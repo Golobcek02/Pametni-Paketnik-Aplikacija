@@ -21,4 +21,9 @@
         android:icon="@drawable/osm_ic_center_map"
         android:title="Map" />
 
+    <item
+        android:id="@+id/navigation_startuppage"
+        android:icon="@drawable/baseline_login_24"
+        android:title="Logout" />
+
 </menu>
