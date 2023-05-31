@@ -100,7 +100,7 @@ class Login2FA : Fragment() {
                 imageCapture = ImageCapture.Builder().build()
 
                 // Select the back camera as the default camera
-                val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+                val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
 
                 try {
                     // Unbind any previous use cases before binding new ones

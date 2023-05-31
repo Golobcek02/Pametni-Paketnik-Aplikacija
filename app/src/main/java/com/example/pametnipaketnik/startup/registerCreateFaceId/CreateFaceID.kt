@@ -114,7 +114,7 @@ class CreateFaceID : Fragment() {
                 imageCapture = ImageCapture.Builder().build()
 
                 // Select the back camera as the default camera
-                val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+                val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
 
                 try {
                     // Unbind any previous use cases before binding new ones
@@ -234,7 +234,7 @@ class CreateFaceID : Fragment() {
             val userId = activity?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
                 ?.getString("user_id", "")
             val success = apiService.uploadImages(userId.toString(), imageParts)
-            println(success)
+            println("tu smo zaj pri returnu "+success)
             if (success) {
                 val sharedPreferences =
                     activity?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
