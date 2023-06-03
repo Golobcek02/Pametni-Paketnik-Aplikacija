@@ -92,7 +92,7 @@ class NotificationsFragment : Fragment() {
         openBoxInterface = retrofit.create(OpenBoxInterface::class.java)
 
         retrofit = Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:5551/")
+            .baseUrl("https://ppbackend.azurewebsites.net/")
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
         authenticateUserInterface = retrofit.create(AuthenticateUserInterface::class.java)

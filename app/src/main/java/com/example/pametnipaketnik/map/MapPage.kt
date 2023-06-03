@@ -44,7 +44,7 @@ class MapPage : Fragment() {
         }
 
         val retrofit = Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:5551/")
+            .baseUrl("https://ppbackend.azurewebsites.net/")
 //            .client(OkHttpClient.Builder().connectTimeout(5, TimeUnit.SECONDS).build())
             .addConverterFactory(GsonConverterFactory.create())
             .build()

@@ -31,7 +31,7 @@ class HomeFragment : Fragment() {
         super.onCreate(savedInstanceState)
 
         val retrofit = Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:5551/")
+            .baseUrl("https://ppbackend.azurewebsites.net/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
         orderInterface = retrofit.create(OrderInterface::class.java)

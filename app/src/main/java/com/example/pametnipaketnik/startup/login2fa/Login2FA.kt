@@ -202,7 +202,7 @@ class Login2FA : Fragment() {
             .writeTimeout(100, TimeUnit.SECONDS) //čaka na response
             .build()
 
-        val retrofit = Retrofit.Builder().baseUrl("http://10.0.2.2:5551/").client(httpClient)
+        val retrofit = Retrofit.Builder().baseUrl("https://ppbackend.azurewebsites.net/").client(httpClient)
 //            .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create()).build()
 

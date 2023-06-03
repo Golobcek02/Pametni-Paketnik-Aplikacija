@@ -30,7 +30,7 @@ class DashboardFragment : Fragment() {
         super.onCreate(savedInstanceState)
 
         val retrofit = Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:5551/")
+            .baseUrl("https://ppbackend.azurewebsites.net/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
         boxInterface = retrofit.create(BoxInterface::class.java)

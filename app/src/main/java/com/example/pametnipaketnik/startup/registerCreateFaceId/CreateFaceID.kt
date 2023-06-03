@@ -6,6 +6,7 @@ import android.animation.ValueAnimator
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -17,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
@@ -34,30 +36,26 @@ import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
-import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.Timer
-import java.util.TimerTask
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 class CreateFaceID : Fragment() {
 
-
     private val CAMERA_PERMISSION_REQUEST_CODE = 100
-    private val MAX_CAPTURE_COUNT = 80
-    private val CAPTURE_DELAY = 500L
+    val WRITE_EXTERNAL_STORAGE_PERMISSION_REQUEST_CODE = 2
+    private val MAX_CAPTURE_COUNT = 40
+    private val CAPTURE_DELAY = 200L
+    private lateinit var animator: ObjectAnimator
 
     private lateinit var cameraExecutor: ExecutorService
     private var currentCaptureCount = 0
     private lateinit var imageCapture: ImageCapture
-    private lateinit var animator: ObjectAnimator
+    private var capturedImages = mutableListOf<ByteArray>()
+    private var isCapturing = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,17 +65,23 @@ class CreateFaceID : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
-//        val sharedPreferences =
-//            activity?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-//        sharedPreferences?.edit()?.apply {
-//            putBoolean("face_id", true)
-//            apply()
-//        }
         (requireActivity() as AppCompatActivity).supportActionBar?.hide()
         val navView = requireActivity().findViewById<BottomNavigationView>(R.id.nav_view)
         navView.visibility = View.GONE
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_create_face_i_d, container, false)
+    }
+
+    private fun phaseText(text: String, delay: Long) {
+        val textView = view?.findViewById<TextView>(R.id.wait_text)
+        CoroutineScope(Dispatchers.Main).launch {
+            while (true) {
+                for (i in 1..text.length) {
+                    delay(delay)
+                    textView?.text = text.substring(0, i)
+                }
+                delay(800)  // Pause for a while before repeating.
+            }
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -93,6 +97,7 @@ class CreateFaceID : Fragment() {
     }
 
     private fun openCamera() {
+        println("kamera")
         // Check if the camera permission is granted
         if (ContextCompat.checkSelfPermission(
                 requireContext(), Manifest.permission.CAMERA
@@ -125,6 +130,7 @@ class CreateFaceID : Fragment() {
                         this, cameraSelector, preview, imageCapture
                     )
                     cameraExecutor = Executors.newSingleThreadExecutor()
+                    println("kamera se bo prožla")
                     // Schedule the capture of images
                     captureImages()
                 } catch (exception: Exception) {
@@ -143,96 +149,68 @@ class CreateFaceID : Fragment() {
     }
 
     private fun captureImages() {
-        val timer = Timer()
-        timer.scheduleAtFixedRate(
-            object : TimerTask() {
-                override fun run() {
-                    if (currentCaptureCount < MAX_CAPTURE_COUNT) {
-                        captureImage()
-                        currentCaptureCount++
-                        println(currentCaptureCount)
-                    } else {
-                        closeCamera()
-                        timer.cancel()
-                    }
-                }
-            }, CAPTURE_DELAY, CAPTURE_DELAY
-        )
+        println("kamera se je prožla")
+        CoroutineScope(Dispatchers.Main).launch {
+            while (currentCaptureCount < MAX_CAPTURE_COUNT) {
+                delay(CAPTURE_DELAY)
+                println(currentCaptureCount)
+                captureImage()
+            }
+            sendImagesToApi()
+        }
     }
 
     private fun captureImage() {
-        // Delete all files in the output directory
-        val outputDirectory = getOutputDirectory()
-        println(outputDirectory)
-        outputDirectory?.let { directory ->
-            directory.listFiles()?.forEach { file ->
-                file.delete()
+        if (isCapturing) return
+        isCapturing = true
+        currentCaptureCount++
+        imageCapture.takePicture(
+            ContextCompat.getMainExecutor(requireContext()),
+            object : ImageCapture.OnImageCapturedCallback() {
+                override fun onCaptureSuccess(image: ImageProxy) {
+                    val buffer = image.planes[0].buffer
+                    buffer.rewind()
+                    val byteArray = ByteArray(buffer.capacity())
+                    buffer.get(byteArray)
+                    capturedImages.add(byteArray)
+                    image.close()
+                    isCapturing = false
+                }
+
+                override fun onError(exception: ImageCaptureException) {
+                    Log.e("CameraXApp", "Photo capture failed: ${exception.message}", exception)
+                    isCapturing = false
+                }
             }
-        }
+        )
 
-        // Capture the images
-        val images = mutableListOf<File>()
-        repeat(MAX_CAPTURE_COUNT) {
-            // Create a timestamped file name for the captured image
-            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-            val fileName = "IMG_$timeStamp.jpg"
-
-            // Set up the file to save the captured image
-            val photoFile = File(outputDirectory, fileName)
-            val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
-
-            // Capture the image
-            imageCapture.takePicture(outputOptions,
-                ContextCompat.getMainExecutor(requireContext()),
-                object : ImageCapture.OnImageSavedCallback {
-                    override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                        // Image saved successfully
-                        images.add(photoFile)
-                        // Check if it's the last image capture
-                        if (currentCaptureCount == MAX_CAPTURE_COUNT - 1) {
-                            // Send the captured images to the API
-                            closeCamera()
-                            CoroutineScope(Dispatchers.IO).launch {
-                                sendImagesToApi(images)
-                            }
-                        } else {
-                            currentCaptureCount++
-                        }
-                    }
-
-                    override fun onError(exception: ImageCaptureException) {
-                        // Handle any errors that occur during image capture
-                        exception.printStackTrace()
-                    }
-                })
-
-            // Delay between capturing consecutive images
-            Thread.sleep(CAPTURE_DELAY)
-        }
     }
 
-    private suspend fun sendImagesToApi(images: List<File>) {
+    private suspend fun sendImagesToApi() {
 
         val httpClient = OkHttpClient.Builder()
             .connectTimeout(60, TimeUnit.SECONDS) //do serverja
-            .readTimeout(100, TimeUnit.SECONDS) //čaka na response
-            .writeTimeout(100, TimeUnit.SECONDS) //čaka na response
+            .readTimeout(150, TimeUnit.SECONDS) //čaka na response
+            .writeTimeout(150, TimeUnit.SECONDS) //čaka na response
             .build()
 
-        val retrofit = Retrofit.Builder().baseUrl("http://10.0.2.2:5551/").client(httpClient)
+        val retrofit = Retrofit.Builder().baseUrl("http://192.168.0.22:5551/").client(httpClient)
             .addConverterFactory(GsonConverterFactory.create()).build()
 
         val apiService = retrofit.create(CreateFaceIDInterface::class.java)
 
-        val imageParts = images.mapIndexed { index, file ->
-            val requestBody = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
-            MultipartBody.Part.createFormData("image$index", file.name, requestBody)
+        println("klic perajt")
+        val imageParts = capturedImages.mapIndexed { index, byteArray ->
+            val requestBody = RequestBody.create("image/jpeg".toMediaTypeOrNull(), byteArray)
+            MultipartBody.Part.createFormData("image$index", "image$index.jpg", requestBody)
         }
 
+        println("body perajt")
         try {
             closeCamera()
             val userId = activity?.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
                 ?.getString("user_id", "")
+            println("kamera dol")
             val success = apiService.uploadImages(userId.toString(), imageParts)
             println("tu smo zaj pri returnu "+success)
             if (success) {
@@ -265,46 +243,36 @@ class CreateFaceID : Fragment() {
         }
     }
 
-
-    private fun getOutputDirectory(): File {
-        // Get the directory where captured images will be saved
-        val mediaDir = requireContext().externalMediaDirs.firstOrNull()?.let {
-            File(it, resources.getString(R.string.app_name)).apply { mkdirs() }
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        when (requestCode) {
+            CAMERA_PERMISSION_REQUEST_CODE -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    openCamera()
+                } else {
+                    // Handle the case when the camera permission is not granted
+                }
+            }
+            WRITE_EXTERNAL_STORAGE_PERMISSION_REQUEST_CODE -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    openCamera()
+                } else {
+                    // Handle the case when the storage permission is not granted
+                }
+            }
+            else -> {
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+            }
         }
-        return if (mediaDir != null && mediaDir.exists()) mediaDir else requireContext().filesDir
     }
+
 
     private fun closeCamera() {
         // Clean up the camera resources
         cameraExecutor.shutdown()
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int, permissions: Array<String>, grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Camera permission granted, open the camera here
-                openCamera()
-            } else {
-                // Camera permission denied
-                // Handle the case where the user denies the camera permission
-            }
-        }
-    }
-
-    private fun phaseText(text: String, delay: Long) {
-        val textView = view?.findViewById<TextView>(R.id.wait_text)
-        CoroutineScope(Dispatchers.Main).launch {
-            while (true) {
-                for (i in 1..text.length) {
-                    delay(delay)
-                    textView?.text = text.substring(0, i)
-                }
-                delay(800)  // Pause for a while before repeating.
-            }
-        }
     }
 
     override fun onResume() {
