@@ -3,6 +3,9 @@ import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -38,13 +41,14 @@ import okhttp3.OkHttpClient
 import okhttp3.RequestBody
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.io.ByteArrayOutputStream
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 class Login2FA : Fragment() {
 
     private val CAMERA_PERMISSION_REQUEST_CODE = 100
-    private val MAX_CAPTURE_COUNT = 3
+    private val MAX_CAPTURE_COUNT = 5
     private val CAPTURE_DELAY = 200L
 
     private lateinit var cameraExecutor: ExecutorService
@@ -155,7 +159,8 @@ class Login2FA : Fragment() {
                     buffer.rewind()
                     val byteArray = ByteArray(buffer.capacity())
                     buffer.get(byteArray)
-                    capturedImages.add(byteArray)
+                    val rotatedByteArray = rotateImage(byteArray, 0f)
+                    capturedImages.add(rotatedByteArray)
                     image.close()
                     isCapturing = false
                 }
@@ -167,6 +172,15 @@ class Login2FA : Fragment() {
             }
         )
 
+    }
+
+    fun rotateImage(byteArray: ByteArray, degrees: Float): ByteArray {
+        val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+        val matrix = Matrix().apply { postRotate(degrees) }
+        val rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+        val outputStream = ByteArrayOutputStream()
+        rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+        return outputStream.toByteArray()
     }
 
     private suspend fun sendImagesToApi() {
@@ -182,7 +196,7 @@ class Login2FA : Fragment() {
         val apiService = retrofit.create(Login2FAInterface::class.java)
 
         val imageParts = capturedImages.mapIndexed { index, byteArray ->
-            val requestBody = RequestBody.create("image/jpeg".toMediaTypeOrNull(), byteArray)
+            val requestBody = RequestBody.create("image/jpg".toMediaTypeOrNull(), byteArray)
             MultipartBody.Part.createFormData("image$index", "image$index.jpg", requestBody)
         }
 
