@@ -256,13 +256,7 @@ class CreateFaceID : Fragment() {
                     // Handle the case when the camera permission is not granted
                 }
             }
-            WRITE_EXTERNAL_STORAGE_PERMISSION_REQUEST_CODE -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    openCamera()
-                } else {
-                    // Handle the case when the storage permission is not granted
-                }
-            }
+
             else -> {
                 super.onRequestPermissionsResult(requestCode, permissions, grantResults)
             }

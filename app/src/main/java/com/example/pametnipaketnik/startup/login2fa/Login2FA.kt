@@ -4,6 +4,7 @@ import android.animation.ValueAnimator
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -34,6 +35,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
+import okhttp3.RequestBody
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.Executors
@@ -43,12 +45,14 @@ class Login2FA : Fragment() {
 
     private val CAMERA_PERMISSION_REQUEST_CODE = 100
     private val MAX_CAPTURE_COUNT = 3
-    private val CAPTURE_DELAY = 1000L
+    private val CAPTURE_DELAY = 200L
 
     private lateinit var cameraExecutor: ExecutorService
     private var currentCaptureCount = 0
     private lateinit var imageCapture: ImageCapture
     private lateinit var animator: ObjectAnimator
+    private var capturedImages = mutableListOf<ByteArray>()
+    private var isCapturing = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -129,88 +133,57 @@ class Login2FA : Fragment() {
     }
 
     private fun captureImages() {
-        val timer = Timer()
-        timer.scheduleAtFixedRate(
-            object : TimerTask() {
-                override fun run() {
-                    if (currentCaptureCount < MAX_CAPTURE_COUNT) {
-                        captureImage()
-                        currentCaptureCount++
-                    } else {
-                        closeCamera()
-                        timer.cancel()
-                    }
-                }
-            }, CAPTURE_DELAY, CAPTURE_DELAY
-        )
+        CoroutineScope(Dispatchers.Main).launch {
+            while (currentCaptureCount < MAX_CAPTURE_COUNT) {
+                delay(CAPTURE_DELAY)
+                println(currentCaptureCount)
+                captureImage()
+            }
+            sendImagesToApi()
+        }
     }
 
     private fun captureImage() {
-        // Delete all files in the output directory
-        val outputDirectory = getOutputDirectory()
-        outputDirectory?.let { directory ->
-            directory.listFiles()?.forEach { file ->
-                file.delete()
+        if (isCapturing) return
+        isCapturing = true
+        currentCaptureCount++
+        imageCapture.takePicture(
+            ContextCompat.getMainExecutor(requireContext()),
+            object : ImageCapture.OnImageCapturedCallback() {
+                override fun onCaptureSuccess(image: ImageProxy) {
+                    val buffer = image.planes[0].buffer
+                    buffer.rewind()
+                    val byteArray = ByteArray(buffer.capacity())
+                    buffer.get(byteArray)
+                    capturedImages.add(byteArray)
+                    image.close()
+                    isCapturing = false
+                }
+
+                override fun onError(exception: ImageCaptureException) {
+                    Log.e("CameraXApp", "Photo capture failed: ${exception.message}", exception)
+                    isCapturing = false
+                }
             }
-        }
+        )
 
-        // Capture the images
-        val images = mutableListOf<File>()
-        repeat(MAX_CAPTURE_COUNT) {
-            // Create a timestamped file name for the captured image
-            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-            val fileName = "IMG_$timeStamp.jpg"
-
-            // Set up the file to save the captured image
-            val photoFile = File(outputDirectory, fileName)
-            val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
-
-            // Capture the image
-            imageCapture.takePicture(outputOptions,
-                ContextCompat.getMainExecutor(requireContext()),
-                object : ImageCapture.OnImageSavedCallback {
-                    override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                        // Image saved successfully
-                        images.add(photoFile)
-                        // Check if it's the last image capture
-                        if (currentCaptureCount == MAX_CAPTURE_COUNT - 1) {
-                            // Send the captured images to the API
-                            closeCamera()
-                            CoroutineScope(Dispatchers.IO).launch {
-                                sendImagesToApi(images)
-                            }
-                        } else {
-                            currentCaptureCount++
-                        }
-                    }
-
-                    override fun onError(exception: ImageCaptureException) {
-                        // Handle any errors that occur during image capture
-                        exception.printStackTrace()
-                    }
-                })
-
-            // Delay between capturing consecutive images
-            Thread.sleep(CAPTURE_DELAY)
-        }
     }
 
-    private suspend fun sendImagesToApi(images: List<File>) {
+    private suspend fun sendImagesToApi() {
         val httpClient = OkHttpClient.Builder()
             .connectTimeout(60, TimeUnit.SECONDS) //do serverja
-            .readTimeout(100, TimeUnit.SECONDS) //čaka na response
-            .writeTimeout(100, TimeUnit.SECONDS) //čaka na response
+            .readTimeout(150, TimeUnit.SECONDS) //čaka na response
+            .writeTimeout(150, TimeUnit.SECONDS) //čaka na response
             .build()
 
-        val retrofit = Retrofit.Builder().baseUrl("https://ppbackend.azurewebsites.net/").client(httpClient)
-//            .client(okHttpClient)
+        val retrofit = Retrofit.Builder().baseUrl("http://192.168.0.22:5551/").client(httpClient)
             .addConverterFactory(GsonConverterFactory.create()).build()
 
         val apiService = retrofit.create(Login2FAInterface::class.java)
 
-        val imageParts = images.mapIndexed { index, file ->
-            val requestBody = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
-            MultipartBody.Part.createFormData("image$index", file.name, requestBody)
+        val imageParts = capturedImages.mapIndexed { index, byteArray ->
+            val requestBody = RequestBody.create("image/jpeg".toMediaTypeOrNull(), byteArray)
+            MultipartBody.Part.createFormData("image$index", "image$index.jpg", requestBody)
         }
 
         try {
@@ -236,13 +209,7 @@ class Login2FA : Fragment() {
     }
 
 
-    private fun getOutputDirectory(): File {
-        // Get the directory where captured images will be saved
-        val mediaDir = requireContext().externalMediaDirs.firstOrNull()?.let {
-            File(it, resources.getString(R.string.app_name)).apply { mkdirs() }
-        }
-        return if (mediaDir != null && mediaDir.exists()) mediaDir else requireContext().filesDir
-    }
+
 
     private fun closeCamera() {
         // Clean up the camera resources
@@ -250,16 +217,21 @@ class Login2FA : Fragment() {
     }
 
     override fun onRequestPermissionsResult(
-        requestCode: Int, permissions: Array<String>, grantResults: IntArray
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
     ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Camera permission granted, open the camera here
-                openCamera()
-            } else {
-                // Camera permission denied
-                // Handle the case where the user denies the camera permission
+        when (requestCode) {
+            CAMERA_PERMISSION_REQUEST_CODE -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    openCamera()
+                } else {
+                    // Handle the case when the camera permission is not granted
+                }
+            }
+
+            else -> {
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults)
             }
         }
     }
