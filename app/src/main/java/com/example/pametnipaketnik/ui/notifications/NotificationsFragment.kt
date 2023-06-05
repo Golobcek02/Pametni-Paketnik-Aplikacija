@@ -92,7 +92,7 @@ class NotificationsFragment : Fragment() {
         openBoxInterface = retrofit.create(OpenBoxInterface::class.java)
 
         retrofit = Retrofit.Builder()
-            .baseUrl("https://ppbackend.azurewebsites.net/")
+            .baseUrl("http://164.8.162.75:5551/")
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
         authenticateUserInterface = retrofit.create(AuthenticateUserInterface::class.java)
@@ -140,7 +140,9 @@ class NotificationsFragment : Fragment() {
                 } else {
                     println("dela")
                     val qrResult = intentResult.contents;
-                    val boxId = qrResult.split("/")[2].toInt();
+                    println(qrResult)
+                    val boxId = qrResult.split("/")[4].toInt();
+                    println(boxId)
                     //binding.scannedText.text = "Scanned box id" +boxId.toString();
                     CoroutineScope(Dispatchers.IO).launch {
                         try {
@@ -173,7 +175,7 @@ class NotificationsFragment : Fragment() {
                                     addAccessLog = false
                                 );
                                 val response = openBoxInterface.openBox(requestBody);
-
+                                println(response)
                                 if (response.result == 0) {
                                     val decodedBytes = Base64.decode(response.data, Base64.DEFAULT);
                                     val tempFile = File.createTempFile("temp", ".mp3")
