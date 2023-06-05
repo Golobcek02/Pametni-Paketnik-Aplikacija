@@ -7,20 +7,20 @@
 
     <fragment
         android:id="@+id/navigation_home"
-        android:name="com.example.pametnipaketnik.ui.home.HomeFragment"
-        android:label="@string/title_home"
+        android:name="com.example.pametnipaketnik.ui.home.OrderFragment"
+        android:label="User orders"
         tools:layout="@layout/fragment_home" />
 
     <fragment
         android:id="@+id/navigation_dashboard"
-        android:name="com.example.pametnipaketnik.ui.dashboard.DashboardFragment"
-        android:label="@string/title_dashboard"
+        android:name="com.example.pametnipaketnik.ui.dashboard.EntriesFragment"
+        android:label="User entries"
         tools:layout="@layout/fragment_dashboard" />
 
     <fragment
         android:id="@+id/navigation_notifications"
         android:name="com.example.pametnipaketnik.ui.notifications.NotificationsFragment"
-        android:label="@string/title_notifications"
+        android:label="Open box"
         tools:layout="@layout/fragment_notifications" />
     <fragment
         android:id="@+id/navigation_startuppage"
@@ -49,7 +49,7 @@
     <fragment
         android:id="@+id/navigation_map_page"
         android:name="com.example.pametnipaketnik.map.MapPage"
-        android:label="fragment_map_page"
+        android:label="Map"
         tools:layout="@layout/fragment_map_page" />
     android:id="@+id/navigation_map_page"
         android:name="com.example.pametnipaketnik.map.MapPage"

@@ -92,7 +92,7 @@ class NotificationsFragment : Fragment() {
         openBoxInterface = retrofit.create(OpenBoxInterface::class.java)
 
         retrofit = Retrofit.Builder()
-            .baseUrl("http://164.8.162.75:5551/")
+            .baseUrl("http://192.168.0.22:5551/")
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
         authenticateUserInterface = retrofit.create(AuthenticateUserInterface::class.java)
