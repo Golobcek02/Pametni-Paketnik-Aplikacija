@@ -11,7 +11,7 @@
 
 
     <ImageView
-        android:id="@+id/image_view"
+        android:id="@+id/entry_icon"
         android:layout_width="43dp"
         android:layout_height="43dp"
         android:src="@drawable/dash"
@@ -32,6 +32,14 @@
             android:textSize="14sp"
             android:fontFamily="@font/exo"
             android:textColor="@color/black"/>
+
+        <TextView
+            android:id="@+id/entry_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/exo"
+            android:textColor="@color/black"
+            android:textSize="14sp" />
 
         <TextView
             android:id="@+id/text_time_accessed"

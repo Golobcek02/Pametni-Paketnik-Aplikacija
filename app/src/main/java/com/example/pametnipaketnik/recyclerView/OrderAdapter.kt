@@ -1,4 +1,6 @@
 import android.annotation.SuppressLint
+import android.graphics.Color
+import android.graphics.PorterDuff
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,13 +13,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.pametnipaketnik.API.GetUserOrders.Order
 import com.example.pametnipaketnik.R
 
-class OrderAdapter(private val orders: List<Order>) : RecyclerView.Adapter<OrderAdapter.OrderViewHolder>() {
+class OrderAdapter(private val orders: List<Order>) :
+    RecyclerView.Adapter<OrderAdapter.OrderViewHolder>() {
 
     class OrderViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val boxIdTextView: TextView = view.findViewById(R.id.boxId_text_view)
         val statusTextView: TextView = view.findViewById(R.id.status_text_view)
         val itemsLinearLayout: LinearLayout = view.findViewById(R.id.items_linear_layout)
-        val iconImageView: ImageView = view.findViewById(R.id.image_view)
+        val icon: ImageView = view.findViewById(R.id.entry_icon)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OrderViewHolder {
@@ -34,20 +37,23 @@ class OrderAdapter(private val orders: List<Order>) : RecyclerView.Adapter<Order
         // Change the icon color based on order status
         when (order.status) {
             "Pending" -> {
-                val pendingIconColor = ContextCompat.getColor(holder.itemView.context, R.color.pendingIconColor)
-                holder.iconImageView.setColorFilter(pendingIconColor)
+                holder.icon.setImageResource(R.drawable.user_order_pending)
+                holder.icon.setColorFilter(Color.parseColor("#f9a73e"), PorterDuff.Mode.SRC_IN)
             }
+
             "In Route" -> {
-                val inRouteIconColor = ContextCompat.getColor(holder.itemView.context, R.color.inRouteIconColor)
-                holder.iconImageView.setColorFilter(inRouteIconColor)
+                holder.icon.setImageResource(R.drawable.one_step_closer)
+                holder.icon.setColorFilter(Color.parseColor("#264b96"), PorterDuff.Mode.SRC_IN)
             }
+
             "Completed" -> {
-                val completedIconColor = ContextCompat.getColor(holder.itemView.context, R.color.completedIconColor)
-                holder.iconImageView.setColorFilter(completedIconColor)
+                holder.icon.setImageResource(R.drawable.order_complete)
+                holder.icon.setColorFilter(Color.parseColor("#006f3c"), PorterDuff.Mode.SRC_IN)
             }
+
             else -> {
-                val defaultIconColor = ContextCompat.getColor(holder.itemView.context, R.color.defaultIconColor)
-                holder.iconImageView.setColorFilter(defaultIconColor)
+                holder.icon.setImageResource(R.drawable.user_order_pending)
+                holder.icon.setColorFilter(Color.parseColor("#f9a73e"), PorterDuff.Mode.SRC_IN)
             }
         }
         println("proba2")

@@ -8,7 +8,7 @@
     android:layout_marginBottom="15dp">
 
     <ImageView
-        android:id="@+id/image_view"
+        android:id="@+id/entry_icon"
         android:layout_width="43dp"
         android:layout_height="43dp"
         android:src="@drawable/baseline_shopping_basket_24"
