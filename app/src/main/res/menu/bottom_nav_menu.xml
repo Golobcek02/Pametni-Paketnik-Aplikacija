@@ -14,7 +14,7 @@
     <item
         android:id="@+id/navigation_notifications"
         android:icon="@drawable/qr"
-        android:title="QR scanning" />
+        android:title="QR scan" />
 
     <item
         android:id="@+id/navigation_map_page"
