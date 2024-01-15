@@ -1,41 +1,52 @@
 package com.example.pametnipaketnik.map
 
 import android.content.Context
-import android.graphics.Color
 import android.location.Geocoder
 import android.os.Bundle
 import android.preference.PreferenceManager
-import androidx.fragment.app.Fragment
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.ToggleButton
+import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.pametnipaketnik.API.Map.MapInterface
 import com.example.pametnipaketnik.R
+import com.example.pametnipaketnik.TSP.DisplayCity
 import com.example.pametnipaketnik.databinding.FragmentMapPageBinding
+import com.example.pametnipaketnik.recyclerView.CityAdapter
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.osmdroid.api.IMapController
 import org.osmdroid.config.Configuration
-import org.osmdroid.events.DelayedMapListener
 import org.osmdroid.events.MapListener
 import org.osmdroid.events.ScrollEvent
 import org.osmdroid.events.ZoomEvent
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
-import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polygon
+import org.osmdroid.views.overlay.Polyline
+import parsing.Parser
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.lang.Exception
+import tsp.City
+import tsp.GA
+import tsp.TSP
+import tsp.Tour
+
 
 class MapPage : Fragment() {
     private var _binding: FragmentMapPageBinding? = null;
     private lateinit var mapInterface: MapInterface;
     private val binding get() = _binding!!;
     private lateinit var map: MapView
+    private lateinit var addBtn: Button
+    private lateinit var toggle: ToggleButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -136,6 +147,58 @@ class MapPage : Fragment() {
                 println(e)
             }
         }
+
+        val recycler = binding.citySelector
+        recycler.layoutManager = LinearLayoutManager(context)
+        var lines = resources.openRawResource(R.raw.data).bufferedReader().readLines().toList()
+        val tmp = mutableListOf<DisplayCity>()
+        val cities = mutableListOf<City>()
+
+        for(i in lines.indices){
+            if(i%3==2){
+                tmp.add(DisplayCity((i/3)+1,lines[i], true))
+                cities.add(City((i/3)+1, lines[i-2].toDouble(), lines[i-1].toDouble()))
+            }
+        }
+        val adapter = CityAdapter(tmp)
+        recycler.adapter= adapter
+
+        addBtn = binding.runAlgorithm
+        toggle = binding.matrixToggler
+
+        addBtn.setOnClickListener {
+
+            for(i in adapter.getSelectedCities()){
+                cities.removeAll { it.index == i.index }
+            }
+
+            val path = if(toggle.isChecked) "android/time_preloaded.dat" else "android/distance_preloaded.dat"
+            var matrix = if(toggle.isChecked) resources.openRawResource(R.raw.distance_preloaded).bufferedReader().readLines().toList() else resources.openRawResource(R.raw.time_preloaded).bufferedReader().readLines().toList()
+
+            /*var filteredMatrix = mutableListOf<String>()
+            for(i in 0 until cities.size){
+                cities[i].index = i+1
+                filteredMatrix.add(matrix[i])
+            }*/
+
+            val eilTsp = TSP(path, 1000000, cities, matrix)
+            //val eilTsp = TSP("src/main/resources/bays29.tsp", 10000)
+            val ga = GA(200, 0.8, 0.15)
+            val bestPath: Tour = ga.execute(eilTsp)
+
+            val route = mutableListOf<GeoPoint>()
+            for(i in bestPath.path){
+                route.add(GeoPoint(i.x, i.y))
+            }
+
+            val line = Polyline(map)
+            line.setPoints(route)
+            line.color = 0xFF0000FF.toInt()
+            line.width = 5.0f
+            map.overlays.add(line)
+            map.invalidate()
+        }
+
 
         return binding.root
     }

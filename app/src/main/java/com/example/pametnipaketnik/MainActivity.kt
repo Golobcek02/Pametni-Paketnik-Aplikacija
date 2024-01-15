@@ -61,7 +61,7 @@ class MainActivity : AppCompatActivity() {
 
         val prefs = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
         val isValueAdded = prefs.contains("username")
-        if (!isValueAdded) {
+        /*if (!isValueAdded) {
             // Navigate to the startup page if the value is not added
             navController.navigate(R.id.navigation_startuppage)
             // Hide the Bottom Navigation Bar when the startup page is shown
@@ -77,7 +77,9 @@ class MainActivity : AppCompatActivity() {
                 navView.visibility = View.GONE
                 navController.navigate(R.id.login_2FA)
             }
-        }
+        }*/
+        navController.navigate(R.id.navigation_home)
+        navView.visibility = View.VISIBLE
 
         // Listen for changes to the selected destination in the Navigation component
         navController.addOnDestinationChangedListener { _, destination, _ ->

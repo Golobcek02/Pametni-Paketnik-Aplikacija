@@ -1,18 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/MapPage"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".map.MapPage">
 
-    <org.osmdroid.views.MapView
-        android:id="@+id/mapView"
-        android:layout_width="413dp"
-        android:layout_height="535dp"
-        android:layout_marginTop="25dp"
-        android:clickable="true"
-        android:focusable="true" />
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <Button
+            android:id="@+id/runAlgorithm"
+            android:layout_width="70dp"
+            android:layout_height="38dp"
+            android:layout_marginBottom="8dp"
+            android:text="Run"
+            app:layout_constraintBottom_toTopOf="@+id/mapView"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.829"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/citySelector"
+            app:layout_constraintVertical_bias="1.0" />
+
+        <org.osmdroid.views.MapView
+            android:id="@+id/mapView"
+            android:layout_width="412dp"
+            android:layout_height="473dp"
+            android:layout_marginBottom="52dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:layout_constraintBottom_toBottomOf="parent"
+            tools:layout_editor_absoluteX="-1dp" />
+
+        <ToggleButton
+            android:id="@+id/matrixToggler"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="false"
+            android:textColor="@color/defaultIconColor"
+            android:textOff="Distance"
+            android:textOn="Time"
+            app:layout_constraintBottom_toTopOf="@+id/mapView"
+            app:layout_constraintEnd_toStartOf="@+id/runAlgorithm"
+            app:layout_constraintHorizontal_bias="0.277"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/citySelector"
+            app:layout_constraintVertical_bias="0.741" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/citySelector"
+            android:layout_width="299dp"
+            android:layout_height="127dp"
+            android:layout_marginTop="4dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.473"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 
 </FrameLayout>
