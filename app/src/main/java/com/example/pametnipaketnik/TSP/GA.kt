@@ -36,13 +36,14 @@ class GA(
             }
 
             for (off in offspring) {
+                var offsp = off
                 if (RandomUtils.nextDouble() < pm) {
-                    swapMutation(off)
+                    offsp=swapMutation(offsp).clone()
                 }
 
-                problem.evaluate(off)
-                if (off.distance < best.distance) {
-                    best = off.clone()
+                problem.evaluate(offsp)
+                if (offsp.distance < best.distance) {
+                    best = offsp.clone()
                 }
             }
 
@@ -88,20 +89,17 @@ class GA(
         val index1 = RandomUtils.nextInt(size / 2)
         val index2 = RandomUtils.nextInt(size / 2 + 1, size)
 
-        val child22 = Tour(size)
         val child11 = Tour(size)
+        val child22 = Tour(size)
 
-        // Copy the segment from parent1 to child1, and from parent2 to child2
         for (i in index1 until index2) {
             child22.path[i] = parent1.path[i].clone()
             child11.path[i] = parent2.path[i].clone()
         }
 
-        // Build mappings for the copied segment
         val mapping1to2 = (index1 until index2).associate { parent1.path[it] to parent2.path[it] }
         val mapping2to1 = (index1 until index2).associate { parent2.path[it] to parent1.path[it] }
 
-        // Fill in the rest of child1 using mappings and containsCity
         for (i in 0 until size) {
             if (i < index1 || i >= index2) {
                 var currentCity = parent1.path[i].clone()
@@ -116,7 +114,6 @@ class GA(
             }
         }
 
-        // Fill in the rest of child2 using mappings and containsCity
         for (i in 0 until size) {
             if (i < index1 || i >= index2) {
                 var currentCity = parent2.path[i].clone()
