@@ -7,6 +7,7 @@ import parsing.Parser
 import java.io.File
 import kotlin.math.pow
 import kotlin.math.sqrt
+import com.example.pametnipaketnik.TSP.RandomUtils
 
 class TSP(path: String, var maxEvaluations: Int) {
 
@@ -14,7 +15,6 @@ class TSP(path: String, var maxEvaluations: Int) {
         EUCLIDEAN,
         WEIGHTED
     }
-
     lateinit var name: String;
     lateinit var start: City
     var cities: MutableList<City> = mutableListOf()
@@ -24,6 +24,7 @@ class TSP(path: String, var maxEvaluations: Int) {
     var numberOfEvaluations = 0
 
     init {
+        RandomUtils.setSeedFromTime()
         if (!path.contains("android") &&((!path.contains("distance") && path.contains("time")) || (!path.contains("time") && path.contains("distance")))) {
             loadData(path)
         } else if(!path.contains("android")) {
