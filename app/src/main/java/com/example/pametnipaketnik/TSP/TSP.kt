@@ -63,13 +63,13 @@ class TSP(path: String, var maxEvaluations: Int) {
 
         numberOfCities = cities.size
         start = cities[0].clone()
-        weights = MutableList(cities[cities.size-1].index) { DoubleArray(cities[cities.size-1].index) }
+        weights = MutableList(w.size) { DoubleArray(w.size) }
 
         if (path.contains("preloaded")) {
             Log.i("preloaded", cities[cities.size-1].index.toString())
-            for (i in 0 until cities[cities.size-1].index){
+            for (i in w.indices){
                 val line = w[i].split(" ")
-                for (j in 0 until cities[cities.size-1].index){
+                for (j in w.indices){
                     if (i != j) {
                         weights[i][j] = line[j].toDouble()
                     }

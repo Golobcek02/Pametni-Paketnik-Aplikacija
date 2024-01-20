@@ -2,21 +2,27 @@ package com.example.pametnipaketnik.ui.notifications
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.AssetManager
 import android.media.MediaPlayer
 import android.os.Bundle
+import android.service.autofill.Dataset
 import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import com.example.pametnipaketnik.API.AuthenticateUser.AuthenticateUserInterface
 import com.example.pametnipaketnik.API.AuthenticateUser.AuthenticateUserRequest
 import com.example.pametnipaketnik.API.OpenBox.OpenBoxInterface
+import com.example.pametnipaketnik.R
 import com.example.pametnipaketnik.databinding.FragmentNotificationsBinding
+import com.example.pametnipaketnik.ui.home.OrderFragment
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
 import com.google.zxing.integration.android.IntentIntegrator
@@ -33,6 +39,23 @@ import retrofit2.http.Headers
 import retrofit2.http.POST
 import java.io.File
 import java.io.FileOutputStream
+import weka.*
+import weka.classifiers.Classifier
+import weka.classifiers.functions.SMO
+import weka.classifiers.trees.J48
+import weka.core.Attribute
+import weka.core.DenseInstance
+import weka.core.Instances
+import weka.core.SerializationHelper
+import java.io.BufferedReader
+import java.io.FileInputStream
+import java.io.FileReader
+import java.io.IOException
+import java.io.InputStream
+import java.io.InputStreamReader
+import java.io.ObjectInputStream
+import java.util.ArrayList
+import kotlin.random.Random
 
 class PortraitCaptureActivity : CaptureActivity() {
     // No need to override anything here
@@ -68,6 +91,9 @@ interface Direct4meApi {
 
 class NotificationsFragment : Fragment() {
 
+    private lateinit var classifier: Classifier
+    private lateinit var dataset: Instances
+
     private var _binding: FragmentNotificationsBinding? = null
     private lateinit var resultLauncher: ActivityResultLauncher<Intent>
     private var mediaPlayer: MediaPlayer? = null
@@ -78,26 +104,78 @@ class NotificationsFragment : Fragment() {
     private lateinit var openBoxInterface: OpenBoxInterface
     private lateinit var authenticateUserInterface: AuthenticateUserInterface
 
+    fun loadModel(modelFileName: String): Classifier {
+        val assetManager: AssetManager = requireContext().assets
+        val modelFilePath = "SMO.model"
+
+        return try {
+            val inputStream: InputStream = assetManager.open(modelFilePath)
+            val loadedModel = SerializationHelper.read(inputStream) as Classifier
+            inputStream.close()
+
+            loadedModel
+        } catch (e: IOException) {
+            throw IllegalArgumentException("Error loading model file: $modelFileName", e)
+        } catch (e: ClassNotFoundException) {
+            throw IllegalArgumentException("Invalid model file format: $modelFileName", e)
+        }
+    }
+
+    // Updated loadArffFile function
+    fun loadArffFile(filePath: String): Instances {
+        val assetManager: AssetManager = requireContext().assets
+
+        return try {
+            val inputStream: InputStream = assetManager.open(filePath)
+            val reader = BufferedReader(InputStreamReader(inputStream))
+            val data = Instances(reader)
+            reader.close()
+            data.setClassIndex(data.numAttributes() - 1)  // Set the class attribute
+            inputStream.close()
+
+            data
+        } catch (e: IOException) {
+            throw IllegalArgumentException("Error loading ARFF file: $filePath", e)
+        }
+    }
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.let {
+        arguments?.let {}
+
+        val modelFilePath = "SMO.model"
+        val arffFilePath = "wrong.arff"
+
+        // Load the pre-trained model
+        classifier = loadModel(modelFilePath)
+
+        // Load the ARFF file
+        dataset = loadArffFile(arffFilePath)
+
+        // Make predictions
+        val predictedClass = classifier.classifyInstance(dataset.lastInstance())
+        println("Predicted class: $predictedClass")
+
+        if (predictedClass == 0.0) {
+            Toast.makeText(requireContext(), "Predicted class is 0.0, NO ACCESS", Toast.LENGTH_SHORT).show()
+            findNavController().navigate(R.id.navigation_home)
+        } else {
+            // Continue with the existing logic
+
+            val gson = GsonBuilder().setLenient().create()
+
+            var retrofit = Retrofit.Builder().baseUrl("https://api-d4me-stage.direct4.me/")
+                .addConverterFactory(GsonConverterFactory.create(gson)).build()
+            openBoxInterface = retrofit.create(OpenBoxInterface::class.java)
+
+            retrofit = Retrofit.Builder().baseUrl("http://192.168.0.22:5551/")
+                .addConverterFactory(GsonConverterFactory.create(gson)).build()
+            authenticateUserInterface = retrofit.create(AuthenticateUserInterface::class.java)
         }
-
-        val gson = GsonBuilder().setLenient().create()
-
-        var retrofit = Retrofit.Builder()
-            .baseUrl("https://api-d4me-stage.direct4.me/")
-            .addConverterFactory(GsonConverterFactory.create(gson))
-            .build()
-        openBoxInterface = retrofit.create(OpenBoxInterface::class.java)
-
-        retrofit = Retrofit.Builder()
-            .baseUrl("http://192.168.0.22:5551/")
-            .addConverterFactory(GsonConverterFactory.create(gson))
-            .build()
-        authenticateUserInterface = retrofit.create(AuthenticateUserInterface::class.java)
-
     }
+
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
